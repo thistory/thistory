@@ -24,6 +24,46 @@ function mapLocale(locale: string | undefined): string {
   return locale;
 }
 
+function pickBestVoice(
+  voices: SpeechSynthesisVoice[],
+  langCode: string
+): SpeechSynthesisVoice | null {
+  const lang = langCode.split("-")[0];
+  const matching = voices.filter(
+    (v) => v.lang === langCode || v.lang.startsWith(lang)
+  );
+  if (matching.length === 0) return null;
+
+  const premium = matching.find(
+    (v) =>
+      v.name.includes("Premium") ||
+      v.name.includes("Enhanced") ||
+      v.name.includes("Natural") ||
+      v.name.includes("Yuna") ||
+      v.name.includes("Google")
+  );
+  return premium ?? matching.find((v) => !v.localService) ?? matching[0];
+}
+
+function splitIntoChunks(text: string, maxLen = 120): string[] {
+  if (text.length <= maxLen) return [text];
+
+  const chunks: string[] = [];
+  const sentences = text.split(/(?<=[.!?。\n])\s*/);
+
+  let current = "";
+  for (const sentence of sentences) {
+    if (current.length + sentence.length > maxLen && current) {
+      chunks.push(current.trim());
+      current = sentence;
+    } else {
+      current += (current ? " " : "") + sentence;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
 export function useVoiceOutput({
   locale,
   rate = 1,
@@ -51,28 +91,38 @@ export function useVoiceOutput({
       const synth = window.speechSynthesis;
       synth.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = mapLocale(locale);
-      utterance.rate = rate;
-      utterance.pitch = pitch;
-
       const langCode = mapLocale(locale);
-      const voices = synth.getVoices();
-      const matchingVoice = voices.find(
-        (voice) =>
-          voice.lang.startsWith(langCode.split("-")[0]) ||
-          voice.lang === langCode
-      );
-      if (matchingVoice) {
-        utterance.voice = matchingVoice;
-      }
+      const voice = pickBestVoice(synth.getVoices(), langCode);
+      const chunks = splitIntoChunks(text);
 
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+      let currentIndex = 0;
+      const speakNext = () => {
+        if (currentIndex >= chunks.length) {
+          setIsSpeaking(false);
+          return;
+        }
 
-      utteranceRef.current = utterance;
-      synth.speak(utterance);
+        const utterance = new SpeechSynthesisUtterance(chunks[currentIndex]);
+        utterance.lang = langCode;
+        utterance.rate = rate;
+        utterance.pitch = pitch;
+        if (voice) utterance.voice = voice;
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => {
+          currentIndex++;
+          speakNext();
+        };
+        utterance.onerror = () => {
+          currentIndex++;
+          speakNext();
+        };
+
+        utteranceRef.current = utterance;
+        synth.speak(utterance);
+      };
+
+      speakNext();
     },
     [isSupported, enabled, locale, rate, pitch]
   );
