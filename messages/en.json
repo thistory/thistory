@@ -65,7 +65,14 @@
     "newConversation": "New conversation",
     "errorMessage": "Something went wrong. Please try again.",
     "initialMessage": "I'm ready for my daily reflection.",
-    "placeholder": "Share your thoughts..."
+    "placeholder": "Share your thoughts...",
+    "switchToText": "Switch to text",
+    "switchToVoice": "Switch to voice",
+    "voiceNotSupported": "Voice input is not supported in this browser",
+    "listening": "Listening...",
+    "toggleTTS": "Voice response",
+    "ttsOn": "Voice response on",
+    "ttsOff": "Voice response off"
   },
   "conversation": {
     "extractedInsights": "Extracted Insights",

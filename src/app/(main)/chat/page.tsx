@@ -3,10 +3,11 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { MessageList } from "@/components/chat/message-list";
 import { ChatInput } from "@/components/chat/chat-input";
+import { useVoiceOutput } from "@/hooks/use-voice-output";
 
 function getTextFromMessage(message: UIMessage): string {
   return message.parts
@@ -27,8 +28,18 @@ export default function ChatPage() {
   const conversationIdRef = useRef<string | null>(null);
   const t = useTranslations("chat");
   const tg = useTranslations("greeting");
+  const locale = useLocale();
   const [greetingKey] = useState(getGreetingKey());
   const initializedRef = useRef(false);
+  const lastSpokenIdRef = useRef<string | null>(null);
+
+  const {
+    speak,
+    stop: stopSpeaking,
+    enabled: ttsEnabled,
+    setEnabled: setTtsEnabled,
+    isSupported: ttsSupported,
+  } = useVoiceOutput({ locale });
 
   const [transport] = useState(
     () =>
@@ -65,7 +76,27 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Auto-speak assistant messages when streaming completes
+  useEffect(() => {
+    if (!ttsEnabled || !ttsSupported) return;
+    const lastMsg = messages[messages.length - 1];
+    if (
+      lastMsg &&
+      lastMsg.role === "assistant" &&
+      lastMsg.id !== lastSpokenIdRef.current &&
+      status !== "streaming" &&
+      status !== "submitted"
+    ) {
+      const text = getTextFromMessage(lastMsg);
+      if (text) {
+        speak(text);
+        lastSpokenIdRef.current = lastMsg.id;
+      }
+    }
+  }, [messages, status, ttsEnabled, ttsSupported, speak]);
+
   function handleSend(content: string) {
+    stopSpeaking();
     sendMessage({ text: content });
   }
 
@@ -99,7 +130,13 @@ export default function ChatPage() {
       )}
 
       <MessageList messages={displayMessages} isStreaming={isStreaming} />
-      <ChatInput onSend={handleSend} disabled={isStreaming} />
+      <ChatInput
+        onSend={handleSend}
+        disabled={isStreaming}
+        locale={locale}
+        ttsEnabled={ttsEnabled}
+        onTtsToggle={setTtsEnabled}
+      />
     </div>
   );
 }
