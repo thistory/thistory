@@ -22,6 +22,12 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
   const [status, setStatus] = useState<null | "saved" | "error">(null);
   const [timeChanged, setTimeChanged] = useState(false);
   const [testStatus, setTestStatus] = useState<null | "sending" | "success" | "failed">(null);
+  const [diag, setDiag] = useState<{
+    permission: string;
+    swState: string;
+    pushSub: string;
+    localTest: string;
+  } | null>(null);
 
   const showStatus = useCallback((s: "saved" | "error") => {
     setStatus(s);
@@ -135,6 +141,59 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
     } finally {
       setSaving(false);
     }
+  }
+
+  async function runDiagnostics() {
+    const result = {
+      permission: Notification.permission,
+      swState: "unknown",
+      pushSub: "none",
+      localTest: "pending",
+    };
+
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      if (regs.length === 0) {
+        result.swState = "not registered";
+      } else {
+        const sw = regs[0].active || regs[0].waiting || regs[0].installing;
+        result.swState = sw ? `${sw.state} (scope: ${regs[0].scope})` : "no worker";
+      }
+    } catch (e) {
+      result.swState = `error: ${e}`;
+    }
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      result.pushSub = sub ? sub.endpoint.slice(0, 60) + "..." : "no subscription";
+    } catch (e) {
+      result.pushSub = `error: ${e}`;
+    }
+
+    if (Notification.permission === "granted") {
+      try {
+        new Notification("Step 1: Browser Notification", {
+          body: "This uses the browser Notification API directly.",
+        });
+        result.localTest = "sent via Notification API";
+      } catch {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification("Step 1: SW Notification", {
+            body: "This uses ServiceWorker.showNotification.",
+            tag: "diag-" + Date.now(),
+          });
+          result.localTest = "sent via SW showNotification";
+        } catch (e) {
+          result.localTest = `error: ${e}`;
+        }
+      }
+    } else {
+      result.localTest = `skipped (permission: ${Notification.permission})`;
+    }
+
+    setDiag(result);
   }
 
   async function handleTestNotification() {
@@ -255,6 +314,30 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
             {testStatus === "failed" && (
               <div className="rounded-xl bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
                 {t("testFailed")}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={runDiagnostics}
+              className="rounded-xl border border-dashed border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t("runDiagnostics")}
+            </button>
+
+            {diag && (
+              <div className="rounded-xl border border-border bg-secondary/50 p-4 text-xs space-y-2">
+                <div className="font-mono space-y-1">
+                  <div><span className="text-muted-foreground">permission:</span> <span className={diag.permission === "granted" ? "text-green-600" : "text-red-500"}>{diag.permission}</span></div>
+                  <div><span className="text-muted-foreground">service worker:</span> {diag.swState}</div>
+                  <div><span className="text-muted-foreground">push subscription:</span> {diag.pushSub}</div>
+                  <div><span className="text-muted-foreground">local notification:</span> {diag.localTest}</div>
+                </div>
+                {diag.localTest.startsWith("sent") && (
+                  <div className="border-t border-border pt-2 text-muted-foreground">
+                    {t("diagCheckOS")}
+                  </div>
+                )}
               </div>
             )}
           </div>

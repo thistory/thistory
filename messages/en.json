@@ -103,6 +103,8 @@
     "testSending": "Sending...",
     "testSuccess": "Test notification sent",
     "testFailed": "Failed to send test notification",
+    "runDiagnostics": "Run diagnostics",
+    "diagCheckOS": "If no notification appeared: Go to macOS System Settings → Notifications → Chrome (or your browser) and ensure notifications are enabled. Also check Focus/Do Not Disturb mode.",
     "language": "Language",
     "languageDescription": "Choose your preferred language",
     "ko": "Korean",
