@@ -1,45 +1,65 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useEffect, useState } from "react";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { useEffect, useRef, useState } from "react";
 import { MessageList } from "@/components/chat/message-list";
 import { ChatInput } from "@/components/chat/chat-input";
 import { getGreeting } from "@/lib/utils";
 
-export default function ChatPage() {
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [greeting] = useState(getGreeting());
+function getTextFromMessage(message: UIMessage): string {
+  return message.parts
+    .filter((p): p is Extract<typeof p, { type: "text" }> => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+}
 
-  const { messages, append, status, error } = useChat({
-    api: "/api/chat",
-    body: { conversationId },
-    onResponse(response) {
-      const newConvId = response.headers.get("X-Conversation-Id");
-      if (newConvId && !conversationId) {
-        setConversationId(newConvId);
-      }
+export default function ChatPage() {
+  const conversationIdRef = useRef<string | null>(null);
+  const [greeting] = useState(getGreeting());
+  const initializedRef = useRef(false);
+
+  const [transport] = useState(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        body: () => ({
+          conversationId: conversationIdRef.current,
+        }),
+      })
+  );
+
+  const { messages, sendMessage, status, error } = useChat({
+    transport,
+    onFinish: () => {
+      fetch("/api/conversations?limit=1")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.[0]?.id) {
+            conversationIdRef.current = data[0].id;
+          }
+        })
+        .catch(() => {});
     },
   });
 
   const isStreaming = status === "streaming" || status === "submitted";
 
   useEffect(() => {
-    if (messages.length === 0 && !conversationId) {
-      append({
-        role: "user",
-        content: `${greeting}! I'm ready for my daily reflection.`,
-      });
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      sendMessage({ text: `${greeting}! I'm ready for my daily reflection.` });
     }
   }, []);
 
   function handleSend(content: string) {
-    append({ role: "user", content });
+    sendMessage({ text: content });
   }
 
   const displayMessages = messages.map((m) => ({
     id: m.id,
     role: m.role as "user" | "assistant",
-    content: m.content,
+    content: getTextFromMessage(m),
   }));
 
   return (
@@ -48,17 +68,15 @@ export default function ChatPage() {
         <h1 className="text-lg font-semibold text-foreground">
           Daily Reflection
         </h1>
-        {conversationId && (
-          <button
-            onClick={() => {
-              setConversationId(null);
-              window.location.reload();
-            }}
-            className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            New conversation
-          </button>
-        )}
+        <button
+          onClick={() => {
+            conversationIdRef.current = null;
+            window.location.reload();
+          }}
+          className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          New conversation
+        </button>
       </header>
 
       {error && (

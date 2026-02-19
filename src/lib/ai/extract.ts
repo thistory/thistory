@@ -36,7 +36,7 @@ export async function generateConversationSummary(
     model: openai("gpt-4o-mini"),
     system: SUMMARY_PROMPT,
     prompt: conversationText,
-    maxTokens: 50,
+    maxOutputTokens: 50,
   });
 
   return text;
