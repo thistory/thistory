@@ -119,7 +119,20 @@
     "language": "Language",
     "languageDescription": "Choose your preferred language",
     "ko": "Korean",
-    "en": "English"
+    "en": "English",
+    "aiModel": "AI Model",
+    "aiModelDescription": "Choose the AI provider and model for your conversations",
+    "aiProvider": "AI Provider",
+    "aiModelName": "Model",
+    "aiCustomModelPlaceholder": "Enter custom model name...",
+    "aiApply": "Apply",
+    "aiSave": "Save AI settings",
+    "ollamaUrl": "Ollama Server URL",
+    "ollamaUrlHint": "The address where Ollama is running. Default: http://localhost:11434",
+    "ollamaTestConnection": "Test connection",
+    "ollamaTestTesting": "Testing...",
+    "ollamaTestOk": "Connected to Ollama server",
+    "ollamaTestFail": "Cannot connect to Ollama server. Check the URL and server status."
   },
   "sidebar": {
     "chat": "Chat",

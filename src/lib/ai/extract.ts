@@ -1,7 +1,7 @@
 import { generateObject, generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { EXTRACTION_PROMPT, SUMMARY_PROMPT } from "./prompts";
+import { getModel, type AIConfig } from "./provider";
 
 const InsightSchema = z.object({
   insights: z.array(
@@ -17,10 +17,11 @@ const InsightSchema = z.object({
 export type ExtractedInsights = z.infer<typeof InsightSchema>;
 
 export async function extractInsights(
-  conversationText: string
+  conversationText: string,
+  aiConfig?: AIConfig
 ): Promise<ExtractedInsights> {
   const { object } = await generateObject({
-    model: openai("gpt-4o-mini"),
+    model: getModel(aiConfig),
     schema: InsightSchema,
     system: EXTRACTION_PROMPT,
     prompt: conversationText,
@@ -30,10 +31,11 @@ export async function extractInsights(
 }
 
 export async function generateConversationSummary(
-  conversationText: string
+  conversationText: string,
+  aiConfig?: AIConfig
 ): Promise<string> {
   const { text } = await generateText({
-    model: openai("gpt-4o-mini"),
+    model: getModel(aiConfig),
     system: SUMMARY_PROMPT,
     prompt: conversationText,
     maxOutputTokens: 50,

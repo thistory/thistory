@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { LanguageSwitcher } from "@/components/settings/language-switcher";
+import { AIModelSettings } from "@/components/settings/ai-model-settings";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -16,6 +17,9 @@ export default async function SettingsPage() {
       notificationEnabled: true,
       notificationTime: true,
       timezone: true,
+      aiProvider: true,
+      aiModel: true,
+      ollamaUrl: true,
     },
   });
 
@@ -28,6 +32,13 @@ export default async function SettingsPage() {
       </header>
       <div className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-2xl space-y-6">
+          <AIModelSettings
+            preferences={{
+              aiProvider: user.aiProvider,
+              aiModel: user.aiModel,
+              ollamaUrl: user.ollamaUrl,
+            }}
+          />
           <NotificationSettings
             preferences={{
               notificationEnabled: user.notificationEnabled,

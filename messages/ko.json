@@ -119,7 +119,20 @@
     "language": "언어",
     "languageDescription": "사용할 언어를 선택하세요",
     "ko": "한국어",
-    "en": "English"
+    "en": "English",
+    "aiModel": "AI 모델",
+    "aiModelDescription": "대화에 사용할 AI 제공자와 모델을 선택하세요",
+    "aiProvider": "AI 제공자",
+    "aiModelName": "모델",
+    "aiCustomModelPlaceholder": "다른 모델명 입력...",
+    "aiApply": "적용",
+    "aiSave": "AI 설정 저장",
+    "ollamaUrl": "Ollama 서버 URL",
+    "ollamaUrlHint": "Ollama가 실행 중인 서버 주소입니다. 기본값: http://localhost:11434",
+    "ollamaTestConnection": "연결 테스트",
+    "ollamaTestTesting": "테스트 중...",
+    "ollamaTestOk": "Ollama 서버에 연결되었습니다",
+    "ollamaTestFail": "Ollama 서버에 연결할 수 없습니다. URL과 서버 상태를 확인하세요."
   },
   "sidebar": {
     "chat": "대화",

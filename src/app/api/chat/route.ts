@@ -1,8 +1,8 @@
 import { streamText, convertToModelMessages } from "ai";
-import { openai } from "@ai-sdk/openai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSystemPrompt } from "@/lib/ai/prompts";
+import { getModel, type AIConfig } from "@/lib/ai/provider";
 import {
   extractInsights,
   generateConversationSummary,
@@ -41,6 +41,22 @@ export async function POST(request: Request) {
   }
 
   const userId = session.user.id;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, aiProvider: true, aiModel: true, ollamaUrl: true },
+  });
+
+  if (!user) {
+    return new Response("User not found", { status: 404 });
+  }
+
+  const aiConfig: AIConfig = {
+    provider: user.aiProvider,
+    model: user.aiModel,
+    ollamaUrl: user.ollamaUrl,
+  };
+
   const body = await request.json();
   const parsed = chatSchema.safeParse(body);
   if (!parsed.success) {
@@ -91,7 +107,7 @@ export async function POST(request: Request) {
   });
 
   const systemPrompt = getSystemPrompt({
-    userName: session.user.name || undefined,
+    userName: user.name || undefined,
     previousInsights: recentInsights.map((i) => i.content),
   });
 
@@ -100,7 +116,7 @@ export async function POST(request: Request) {
   const modelMessages = await convertToModelMessages(body.messages);
 
   const result = streamText({
-    model: openai("gpt-4o-mini"),
+    model: getModel(aiConfig),
     system: systemPrompt,
     messages: modelMessages,
     async onFinish({ text }) {
@@ -127,8 +143,10 @@ export async function POST(request: Request) {
           );
 
           const [extracted, summary] = await Promise.all([
-            extractInsights(conversationText).catch(() => null),
-            generateConversationSummary(conversationText).catch(() => null),
+            extractInsights(conversationText, aiConfig).catch(() => null),
+            generateConversationSummary(conversationText, aiConfig).catch(
+              () => null
+            ),
           ]);
 
           if (extracted) {
