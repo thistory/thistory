@@ -1,13 +1,33 @@
+self.addEventListener("install", function (event) {
+  console.log("[SW] Installing, skip waiting");
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", function (event) {
+  console.log("[SW] Activated, claiming clients");
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", function (event) {
+  console.log("[SW] Push received:", event.data ? event.data.text() : "no data");
+
   if (!event.data) return;
 
-  const data = event.data.json();
-  const options = {
+  var data;
+  try {
+    data = event.data.json();
+  } catch (e) {
+    console.error("[SW] Failed to parse push data:", e);
+    return;
+  }
+
+  var options = {
     body: data.body || "Time for your daily reflection",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
-    tag: "thistory-daily",
+    tag: data.tag || "thistory-" + Date.now(),
     renotify: true,
+    requireInteraction: true,
     data: {
       url: data.url || "/chat",
     },

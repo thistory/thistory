@@ -21,6 +21,7 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
   const [permissionState, setPermissionState] = useState<NotificationPermission>("default");
   const [status, setStatus] = useState<null | "saved" | "error">(null);
   const [timeChanged, setTimeChanged] = useState(false);
+  const [testStatus, setTestStatus] = useState<null | "sending" | "success" | "failed">(null);
 
   const showStatus = useCallback((s: "saved" | "error") => {
     setStatus(s);
@@ -136,6 +137,22 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
     }
   }
 
+  async function handleTestNotification() {
+    setTestStatus("sending");
+    try {
+      const res = await fetch("/api/notifications/test", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || data.sent === 0) {
+        setTestStatus("failed");
+      } else {
+        setTestStatus("success");
+      }
+    } catch {
+      setTestStatus("failed");
+    }
+    setTimeout(() => setTestStatus(null), 3000);
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-card p-6">
       <div className="mb-6">
@@ -218,6 +235,27 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
               >
                 {saving ? t("saving") : t("saveTime")}
               </button>
+            )}
+
+            <button
+              type="button"
+              disabled={testStatus === "sending"}
+              onClick={handleTestNotification}
+              className="rounded-xl border border-border bg-secondary px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+            >
+              {testStatus === "sending" ? t("testSending") : t("testNotification")}
+            </button>
+
+            {testStatus === "success" && (
+              <div className="rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary">
+                {t("testSuccess")}
+              </div>
+            )}
+
+            {testStatus === "failed" && (
+              <div className="rounded-xl bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
+                {t("testFailed")}
+              </div>
             )}
           </div>
         )}
