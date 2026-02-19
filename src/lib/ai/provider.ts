@@ -18,7 +18,8 @@ export function getModel(config?: AIConfig): LanguageModel {
   if (provider === "ollama") {
     const baseURL = `${ollamaUrl || "http://localhost:11434"}/v1`;
     const ollama = createOpenAI({ baseURL, apiKey: "ollama" });
-    return ollama(model);
+    // Ollama only supports Chat Completions API, not OpenAI Responses API
+    return ollama.chat(model);
   }
 
   const openai = createOpenAI({});
