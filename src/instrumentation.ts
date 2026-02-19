@@ -3,21 +3,24 @@ export async function register() {
     const { logger } = await import("@/lib/logger");
     const { checkAndSendNotifications } = await import("@/lib/notifications");
 
-    const INTERVAL_MS = 60_000;
-    let lastRunMinute = -1;
+    let lastRunKey = "";
 
-    logger.info("Notification scheduler started");
-
-    setInterval(async () => {
-      const currentMinute = new Date().getMinutes();
-      if (currentMinute === lastRunMinute) return;
-      lastRunMinute = currentMinute;
+    async function tick() {
+      const now = new Date();
+      const key = `${now.getHours()}:${now.getMinutes()}`;
+      if (key === lastRunKey) return;
+      lastRunKey = key;
 
       try {
         await checkAndSendNotifications();
       } catch (error) {
         logger.error("Scheduler notification check failed", error);
       }
-    }, INTERVAL_MS);
+    }
+
+    logger.info("Notification scheduler started");
+
+    setTimeout(tick, 3_000);
+    setInterval(tick, 30_000);
   }
 }
