@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { format, subDays, startOfDay } from "date-fns";
+import { cn, getLast30Days } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface HabitTrackerProps {
   activeDates: string[];
@@ -11,22 +11,19 @@ interface HabitTrackerProps {
 
 export function HabitTracker({ activeDates }: HabitTrackerProps) {
   const t = useTranslations("dashboard");
-  const today = startOfDay(new Date());
+  const last30Days = getLast30Days();
+  const todayStr = last30Days[last30Days.length - 1];
   const activeDateSet = new Set(
     activeDates.map((d) => format(new Date(d), "yyyy-MM-dd"))
   );
 
-  const days = Array.from({ length: 30 }, (_, i) => {
-    const date = subDays(today, 29 - i);
-    const dateStr = format(date, "yyyy-MM-dd");
-    return {
-      date: dateStr,
-      label: format(date, "d"),
-      dayOfWeek: format(date, "EEE"),
-      active: activeDateSet.has(dateStr),
-      isToday: dateStr === format(today, "yyyy-MM-dd"),
-    };
-  });
+  const days = last30Days.map((dateStr) => ({
+    date: dateStr,
+    label: format(new Date(dateStr), "d"),
+    dayOfWeek: format(new Date(dateStr), "EEE"),
+    active: activeDateSet.has(dateStr),
+    isToday: dateStr === todayStr,
+  }));
 
   const activeCount = days.filter((d) => d.active).length;
 

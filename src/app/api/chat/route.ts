@@ -9,8 +9,29 @@ import {
   formatConversationForExtraction,
 } from "@/lib/ai/extract";
 import { updateStreak } from "@/lib/streak";
+import { z } from "zod";
 
 export const maxDuration = 30;
+
+const chatSchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant", "system"] as const),
+        content: z.string().optional(),
+        parts: z
+          .array(
+            z.object({
+              type: z.string(),
+              text: z.string().optional(),
+            })
+          )
+          .optional(),
+      })
+    )
+    .min(1),
+  conversationId: z.string().optional(),
+});
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -20,7 +41,12 @@ export async function POST(request: Request) {
   }
 
   const userId = session.user.id;
-  const { messages, conversationId } = await request.json();
+  const body = await request.json();
+  const parsed = chatSchema.safeParse(body);
+  if (!parsed.success) {
+    return new Response("Invalid request data", { status: 400 });
+  }
+  const { messages, conversationId } = parsed.data;
 
   let convId = conversationId;
 
@@ -40,8 +66,11 @@ export async function POST(request: Request) {
     const textContent =
       userMessage.content ??
       (userMessage.parts
-        ?.filter((p: { type: string }) => p.type === "text")
-        .map((p: { text: string }) => p.text)
+        ?.filter(
+          (p): p is { type: "text"; text: string } =>
+            p.type === "text" && typeof p.text === "string"
+        )
+        .map((p) => p.text)
         .join("") ||
         "");
 
@@ -66,7 +95,9 @@ export async function POST(request: Request) {
     previousInsights: recentInsights.map((i) => i.content),
   });
 
-  const modelMessages = await convertToModelMessages(messages);
+  // Pass original body.messages to convertToModelMessages — Zod validated structure,
+  // but AI SDK needs its own UIMessage types which are broader than our schema
+  const modelMessages = await convertToModelMessages(body.messages);
 
   const result = streamText({
     model: openai("gpt-4o-mini"),
@@ -139,8 +170,8 @@ export async function POST(request: Request) {
         }
 
         await updateStreak(userId);
-      } catch {
-        console.error("Post-processing failed (non-blocking)");
+      } catch (error) {
+        console.error("Post-processing failed (non-blocking):", error);
       }
     },
   });

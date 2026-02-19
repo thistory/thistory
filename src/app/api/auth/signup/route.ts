@@ -20,8 +20,8 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "Email already registered" },
-        { status: 409 }
+        { error: "Registration failed. Please try again." },
+        { status: 400 }
       );
     }
 

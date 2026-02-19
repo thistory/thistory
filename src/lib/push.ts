@@ -44,7 +44,12 @@ export async function sendPushNotification(
       logger.info("Removing expired push subscription", { endpoint: subscription.endpoint });
       await prisma.pushSubscription.delete({
         where: { endpoint: subscription.endpoint },
-      }).catch(() => {});
+      }).catch((err) => {
+        logger.warn("Failed to delete expired subscription", {
+          endpoint: subscription.endpoint,
+          error: err,
+        });
+      });
     }
     throw error;
   }

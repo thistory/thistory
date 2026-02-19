@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { MessageList } from "@/components/chat/message-list";
 import { ChatInput } from "@/components/chat/chat-input";
 
@@ -22,6 +23,7 @@ function getGreetingKey(): string {
 }
 
 export default function ChatPage() {
+  const router = useRouter();
   const conversationIdRef = useRef<string | null>(null);
   const t = useTranslations("chat");
   const tg = useTranslations("greeting");
@@ -48,7 +50,9 @@ export default function ChatPage() {
             conversationIdRef.current = data[0].id;
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error("Failed to fetch conversation ID:", err);
+        });
     },
   });
 
@@ -80,7 +84,7 @@ export default function ChatPage() {
         <button
           onClick={() => {
             conversationIdRef.current = null;
-            window.location.reload();
+            router.refresh();
           }}
           className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
         >

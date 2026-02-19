@@ -10,7 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { format, subDays, startOfDay } from "date-fns";
+import { getLast30Days } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface ActivityChartProps {
   conversationDates: string[];
@@ -18,11 +19,7 @@ interface ActivityChartProps {
 
 export function ActivityChart({ conversationDates }: ActivityChartProps) {
   const t = useTranslations("dashboard");
-  const today = startOfDay(new Date());
-  const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = subDays(today, 29 - i);
-    return format(date, "yyyy-MM-dd");
-  });
+  const last30Days = getLast30Days();
 
   const dateCounts = conversationDates.reduce(
     (acc, date) => {

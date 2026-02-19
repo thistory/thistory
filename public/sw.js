@@ -44,7 +44,11 @@ self.addEventListener("push", function (event) {
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || "/chat";
+  var targetPath = event.notification.data?.url || "/chat";
+  // Only allow relative paths starting with / to prevent open redirect
+  if (typeof targetPath !== "string" || !targetPath.startsWith("/")) {
+    targetPath = "/chat";
+  }
 
   event.waitUntil(
     clients
@@ -52,11 +56,11 @@ self.addEventListener("notificationclick", function (event) {
       .then(function (clientList) {
         for (var i = 0; i < clientList.length; i++) {
           var client = clientList[i];
-          if (client.url.includes(targetUrl) && "focus" in client) {
+          if (client.url.includes(targetPath) && "focus" in client) {
             return client.focus();
           }
         }
-        return clients.openWindow(targetUrl);
+        return clients.openWindow(targetPath);
       })
   );
 });

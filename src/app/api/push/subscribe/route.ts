@@ -23,6 +23,17 @@ export async function POST(request: Request) {
 
   const { endpoint, p256dh, auth: authKey } = parsed.data;
 
+  const existing = await prisma.pushSubscription.findUnique({
+    where: { endpoint },
+  });
+
+  if (existing && existing.userId !== session.user.id) {
+    return NextResponse.json(
+      { error: "Subscription endpoint unavailable" },
+      { status: 409 }
+    );
+  }
+
   await prisma.pushSubscription.upsert({
     where: { endpoint },
     create: {
@@ -32,7 +43,6 @@ export async function POST(request: Request) {
       auth: authKey,
     },
     update: {
-      userId: session.user.id,
       p256dh,
       auth: authKey,
     },

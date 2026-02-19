@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MessageBubble } from "@/components/chat/message-bubble";
@@ -13,6 +14,7 @@ interface PageProps {
 export default async function ConversationPage({ params }: PageProps) {
   const { id } = await params;
   const session = await auth();
+  const t = await getTranslations("conversation");
 
   if (!session?.user?.id) {
     redirect("/login");
@@ -61,7 +63,7 @@ export default async function ConversationPage({ params }: PageProps) {
         </Link>
         <div>
           <h1 className="text-sm font-semibold text-foreground">
-            {conversation.title || "Conversation"}
+            {conversation.title || t("defaultTitle")}
           </h1>
           <p className="text-xs text-muted-foreground">
             {formatDate(conversation.createdAt)}
@@ -85,7 +87,7 @@ export default async function ConversationPage({ params }: PageProps) {
         {conversation.insights.length > 0 && (
           <div className="mt-8 rounded-2xl border border-border bg-card p-4">
             <h3 className="mb-3 text-sm font-semibold text-foreground">
-              Extracted Insights
+              {t("extractedInsights")}
             </h3>
             <div className="space-y-2">
               {conversation.insights.map((insight) => (

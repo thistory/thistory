@@ -10,8 +10,11 @@ export async function GET(request: NextRequest) {
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const limit = parseInt(searchParams.get("limit") || "10");
-  const offset = parseInt(searchParams.get("offset") || "0");
+  const limit = Math.min(
+    Math.max(parseInt(searchParams.get("limit") || "10") || 10, 1),
+    50
+  );
+  const offset = Math.max(parseInt(searchParams.get("offset") || "0") || 0, 0);
 
   const conversations = await prisma.conversation.findMany({
     where: { userId: session.user.id },

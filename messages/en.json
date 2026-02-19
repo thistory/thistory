@@ -67,6 +67,10 @@
     "initialMessage": "I'm ready for my daily reflection.",
     "placeholder": "Share your thoughts..."
   },
+  "conversation": {
+    "extractedInsights": "Extracted Insights",
+    "defaultTitle": "Conversation"
+  },
   "dashboard": {
     "title": "Dashboard",
     "dayStreak": "{count, plural, one {day streak} other {days streak}}",

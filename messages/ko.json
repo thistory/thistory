@@ -67,6 +67,10 @@
     "initialMessage": "오늘의 성찰을 시작할게요.",
     "placeholder": "생각을 나눠주세요..."
   },
+  "conversation": {
+    "extractedInsights": "추출된 인사이트",
+    "defaultTitle": "대화"
+  },
   "dashboard": {
     "title": "대시보드",
     "dayStreak": "{count, plural, one {일 연속} other {일 연속}}",
