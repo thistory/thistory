@@ -1,4 +1,4 @@
-import { streamText } from "ai";
+import { streamText, convertToModelMessages } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -36,11 +36,20 @@ export async function POST(request: Request) {
 
   const userMessage = messages[messages.length - 1];
   if (userMessage?.role === "user") {
+    // AI SDK v6: messages use parts array, not content string
+    const textContent =
+      userMessage.content ??
+      (userMessage.parts
+        ?.filter((p: { type: string }) => p.type === "text")
+        .map((p: { text: string }) => p.text)
+        .join("") ||
+        "");
+
     await prisma.message.create({
       data: {
         conversationId: convId,
         role: "USER",
-        content: userMessage.content,
+        content: textContent,
       },
     });
   }
@@ -57,10 +66,12 @@ export async function POST(request: Request) {
     previousInsights: recentInsights.map((i) => i.content),
   });
 
+  const modelMessages = await convertToModelMessages(messages);
+
   const result = streamText({
     model: openai("gpt-4o-mini"),
     system: systemPrompt,
-    messages,
+    messages: modelMessages,
     async onFinish({ text }) {
       await prisma.message.create({
         data: {
