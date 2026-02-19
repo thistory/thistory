@@ -1,12 +1,19 @@
+const LANGUAGE_INSTRUCTIONS: Record<string, string> = {
+  ko: "\n\nCRITICAL LANGUAGE RULE: You MUST respond ONLY in Korean (한국어). Use 해요체. Every single word must be Korean. Do NOT mix in English, Chinese, Japanese, Thai, or any other language. If you cannot express something in Korean, skip it. Example: '오늘 하루 어떠셨어요?' is correct.",
+  en: "\n\nCRITICAL LANGUAGE RULE: You MUST respond ONLY in English.",
+};
+
 export function getSystemPrompt(context?: {
   userName?: string;
   previousInsights?: string[];
+  locale?: string;
 }): string {
   const name = context?.userName || "there";
   const insightsContext =
     context?.previousInsights && context.previousInsights.length > 0
       ? `\n\nHere are some things this person has been thinking about recently:\n${context.previousInsights.map((i) => `- ${i}`).join("\n")}\n\nUse this context naturally — reference their ongoing themes when relevant, but don't list them back mechanically.`
       : "";
+  const langInstruction = LANGUAGE_INSTRUCTIONS[context?.locale ?? "ko"] ?? LANGUAGE_INSTRUCTIONS.ko;
 
   return `You are a warm, thoughtful daily reflection partner for an app called "This Story." Your role is to help ${name} reflect on their day in a focused 5-minute conversation.
 
@@ -29,7 +36,7 @@ Important rules:
 - If they seem stressed, prioritize listening over problem-solving
 - Celebrate small wins genuinely
 - Keep the tone conversational, like a thoughtful friend
-- End conversations naturally after 5-8 exchanges${insightsContext}`;
+- End conversations naturally after 5-8 exchanges${insightsContext}${langInstruction}`;
 }
 
 export const EXTRACTION_PROMPT = `You are an expert at analyzing daily reflection conversations. Extract structured insights from the conversation below.

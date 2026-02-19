@@ -16,6 +16,7 @@ export const maxDuration = 30;
 const chatSchema = z.object({
   messages: z.array(z.record(z.string(), z.unknown())).min(1),
   conversationId: z.string().nullable().optional(),
+  locale: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return new Response("Invalid request data", { status: 400 });
   }
-  const { messages, conversationId } = parsed.data;
+  const { messages, conversationId, locale } = parsed.data;
 
   let convId = conversationId ?? undefined;
 
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
   const systemPrompt = getSystemPrompt({
     userName: user.name || undefined,
     previousInsights: recentInsights.map((i) => i.content),
+    locale,
   });
 
   // Pass original body.messages to convertToModelMessages — Zod validated structure,

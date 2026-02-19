@@ -47,6 +47,7 @@ export default function ChatPage() {
         api: "/api/chat",
         body: () => ({
           conversationId: conversationIdRef.current,
+          locale,
         }),
       })
   );
