@@ -1,8 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { formatRelativeDate } from "@/lib/utils";
+
+function useRelativeDateLabels() {
+  const tc = useTranslations("common");
+  return { today: tc("today"), yesterday: tc("yesterday") };
+}
 
 interface Insight {
   id: string;
@@ -17,6 +23,9 @@ interface GoalsListProps {
 }
 
 export function GoalsList({ insights }: GoalsListProps) {
+  const t = useTranslations("dashboard");
+  const dateLabels = useRelativeDateLabels();
+
   const parseTags = (tags: string[] | string): string[] => {
     if (Array.isArray(tags)) return tags;
     try {
@@ -30,11 +39,11 @@ export function GoalsList({ insights }: GoalsListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Your Goals</CardTitle>
+          <CardTitle>{t("goalsTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Goals will appear here as you chat about them in your daily reflections.
+            {t("goalsEmpty")}
           </p>
         </CardContent>
       </Card>
@@ -44,7 +53,7 @@ export function GoalsList({ insights }: GoalsListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Your Goals</CardTitle>
+        <CardTitle>{t("goalsTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-3">
@@ -63,7 +72,7 @@ export function GoalsList({ insights }: GoalsListProps) {
                     </Badge>
                   ))}
                   <span className="text-xs text-muted-foreground">
-                    {formatRelativeDate(insight.createdAt)}
+                    {formatRelativeDate(insight.createdAt, dateLabels)}
                   </span>
                 </div>
               </div>

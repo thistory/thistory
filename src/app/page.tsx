@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 
 export default async function HomePage() {
   const session = await auth();
+  const tc = await getTranslations("common");
+  const tl = await getTranslations("landing");
 
   if (session?.user) {
     redirect("/chat");
@@ -25,13 +28,13 @@ export default async function HomePage() {
             href="/login"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Sign in
+            {tc("signIn")}
           </Link>
           <Link
             href="/signup"
             className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Get started
+            {tl("getStarted")}
           </Link>
         </div>
       </header>
@@ -40,13 +43,12 @@ export default async function HomePage() {
         <div className="mx-auto max-w-2xl text-center space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-              5 minutes of daily
+              {tl("heroTitle1")}
               <br />
-              <span className="text-primary">reflection</span>
+              <span className="text-primary">{tl("heroTitle2")}</span>
             </h1>
             <p className="mx-auto max-w-lg text-lg text-muted-foreground">
-              A short daily conversation with AI that helps you track your
-              goals, discover patterns, and turn effort into growth.
+              {tl("heroDescription")}
             </p>
           </div>
 
@@ -55,40 +57,40 @@ export default async function HomePage() {
               href="/signup"
               className="w-full rounded-xl bg-primary px-8 py-3 text-base font-medium text-primary-foreground hover:bg-primary/90 transition-colors sm:w-auto"
             >
-              Start your story
+              {tl("startYourStory")}
             </Link>
             <Link
               href="/login"
               className="w-full rounded-xl border border-border px-8 py-3 text-base font-medium text-foreground hover:bg-secondary transition-colors sm:w-auto"
             >
-              Sign in
+              {tc("signIn")}
             </Link>
           </div>
 
           <div className="grid gap-6 pt-8 sm:grid-cols-3">
             <div className="rounded-2xl border border-border bg-card p-6 text-left">
               <div className="mb-3 text-2xl">💬</div>
-              <h3 className="font-semibold text-foreground">Reflect daily</h3>
+              <h3 className="font-semibold text-foreground">{tl("feature1Title")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                A guided 5-minute conversation that helps you process your day.
+                {tl("feature1Description")}
               </p>
             </div>
             <div className="rounded-2xl border border-border bg-card p-6 text-left">
               <div className="mb-3 text-2xl">📊</div>
               <h3 className="font-semibold text-foreground">
-                Track your growth
+                {tl("feature2Title")}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                See your goals, habits, and streaks visualized over time.
+                {tl("feature2Description")}
               </p>
             </div>
             <div className="rounded-2xl border border-border bg-card p-6 text-left">
               <div className="mb-3 text-2xl">🔍</div>
               <h3 className="font-semibold text-foreground">
-                See your patterns
+                {tl("feature3Title")}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                AI extracts goals, concerns, and actions from your words.
+                {tl("feature3Description")}
               </p>
             </div>
           </div>
@@ -96,7 +98,7 @@ export default async function HomePage() {
       </main>
 
       <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
-        This Story — Your daily reflection, powered by AI
+        {tl("footer")}
       </footer>
     </div>
   );

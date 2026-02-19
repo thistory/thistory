@@ -11,10 +11,13 @@ export function formatDate(date: Date | string): string {
   return format(d, "MMM d, yyyy");
 }
 
-export function formatRelativeDate(date: Date | string): string {
+export function formatRelativeDate(
+  date: Date | string,
+  labels?: { today: string; yesterday: string }
+): string {
   const d = new Date(date);
-  if (isToday(d)) return "Today";
-  if (isYesterday(d)) return "Yesterday";
+  if (isToday(d)) return labels?.today ?? "Today";
+  if (isYesterday(d)) return labels?.yesterday ?? "Yesterday";
   return formatDistanceToNow(d, { addSuffix: true });
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ export function StreakCard({
   longestStreak,
   isActiveToday = false,
 }: StreakCardProps) {
+  const t = useTranslations("dashboard");
+
   return (
     <Card className={cn(isActiveToday && "border-primary/30 bg-primary/5")}>
       <CardContent>
@@ -34,16 +37,16 @@ export function StreakCard({
                 {currentStreak}
               </span>
               <span className="text-sm text-muted-foreground">
-                day{currentStreak !== 1 ? "s" : ""} streak
+                {t("dayStreak", { count: currentStreak })}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Longest: {longestStreak} day{longestStreak !== 1 ? "s" : ""}
+              {t("longestStreak", { count: longestStreak })}
             </p>
           </div>
           {!isActiveToday && currentStreak > 0 && (
             <div className="rounded-xl bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
-              Check in today!
+              {t("checkInToday")}
             </div>
           )}
         </div>

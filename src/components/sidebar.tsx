@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -16,7 +17,7 @@ interface SidebarProps {
 const navItems = [
   {
     href: "/chat",
-    label: "Chat",
+    label: "chat",
     icon: (
       <svg
         className="h-5 w-5"
@@ -35,7 +36,7 @@ const navItems = [
   },
   {
     href: "/dashboard",
-    label: "Dashboard",
+    label: "dashboard",
     icon: (
       <svg
         className="h-5 w-5"
@@ -54,7 +55,7 @@ const navItems = [
   },
   {
     href: "/settings",
-    label: "Settings",
+    label: "settings",
     icon: (
       <svg
         className="h-5 w-5"
@@ -81,6 +82,8 @@ const navItems = [
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("sidebar");
+  const tc = useTranslations("common");
 
   return (
     <aside className="hidden w-64 flex-col border-r border-border bg-card md:flex">
@@ -108,17 +111,17 @@ export function Sidebar({ user }: SidebarProps) {
             )}
           >
             {item.icon}
-            {item.label}
+            {t(item.label)}
           </Link>
         ))}
       </nav>
 
       <div className="border-t border-border p-3">
         <div className="flex items-center gap-3 rounded-xl px-3 py-2">
-          <Avatar name={user.name || user.email || "User"} />
+          <Avatar name={user.name || user.email || tc("user")} />
           <div className="flex-1 overflow-hidden">
             <p className="truncate text-sm font-medium text-foreground">
-              {user.name || "User"}
+              {user.name || tc("user")}
             </p>
             <p className="truncate text-xs text-muted-foreground">
               {user.email}
@@ -127,7 +130,7 @@ export function Sidebar({ user }: SidebarProps) {
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-            title="Sign out"
+            title={tc("signOut")}
           >
             <svg
               className="h-4 w-4"

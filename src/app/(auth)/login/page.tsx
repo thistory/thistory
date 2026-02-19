@@ -4,12 +4,15 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
+  const tc = useTranslations("common");
+  const ta = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +30,7 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError(ta("invalidCredentials"));
       setLoading(false);
     } else {
       router.push("/chat");
@@ -44,25 +47,25 @@ export default function LoginPage() {
           </div>
           <span className="text-xl font-bold text-foreground">This Story</span>
         </div>
-        <CardTitle>Welcome back</CardTitle>
+        <CardTitle>{ta("welcomeBack")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Sign in to continue your daily reflection
+          {ta("signInDescription")}
         </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Email"
+            label={tc("email")}
             type="email"
-            placeholder="you@example.com"
+            placeholder={ta("emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <Input
-            label="Password"
+            label={tc("password")}
             type="password"
-            placeholder="Enter your password"
+            placeholder={ta("passwordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -71,16 +74,16 @@ export default function LoginPage() {
             <p className="text-sm text-destructive">{error}</p>
           )}
           <Button type="submit" className="w-full" loading={loading}>
-            Sign in
+            {tc("signIn")}
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          {ta("noAccount")} {" "}
           <Link
             href="/signup"
             className="font-medium text-primary hover:underline"
           >
-            Sign up
+            {tc("signUp")}
           </Link>
         </p>
       </CardContent>

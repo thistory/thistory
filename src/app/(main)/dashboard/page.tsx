@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { StreakCard } from "@/components/dashboard/streak-card";
@@ -10,6 +11,7 @@ import { format } from "date-fns";
 
 export default async function DashboardPage() {
   const session = await auth();
+  const t = await getTranslations("dashboard");
 
   if (!session?.user?.id) {
     redirect("/login");
@@ -63,7 +65,7 @@ export default async function DashboardPage() {
   return (
     <div className="h-full overflow-auto">
       <header className="flex h-14 items-center border-b border-border px-6">
-        <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
+        <h1 className="text-lg font-semibold text-foreground">{t("title")}</h1>
       </header>
 
       <div className="mx-auto max-w-4xl space-y-6 p-6">

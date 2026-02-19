@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 
@@ -17,21 +18,22 @@ interface InsightsSummaryProps {
   }>;
 }
 
-const typeConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  GOAL: { label: "Goals", variant: "goal" },
-  CONCERN: { label: "Concerns", variant: "concern" },
-  ACTION: { label: "Actions", variant: "action" },
-  HABIT: { label: "Habits", variant: "habit" },
-};
-
 export function InsightsSummary({
   counts,
   recentInsights,
 }: InsightsSummaryProps) {
+  const t = useTranslations("dashboard");
+  const typeConfig: Record<string, { label: string; variant: BadgeVariant }> = {
+    GOAL: { label: t("typeGoals"), variant: "goal" },
+    CONCERN: { label: t("typeConcerns"), variant: "concern" },
+    ACTION: { label: t("typeActions"), variant: "action" },
+    HABIT: { label: t("typeHabits"), variant: "habit" },
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Insights Breakdown</CardTitle>
+        <CardTitle>{t("insightsTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
@@ -57,7 +59,7 @@ export function InsightsSummary({
         {recentInsights.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">
-              Recent
+              {t("insightsRecent")}
             </p>
             {recentInsights.slice(0, 5).map((insight) => {
               const config = typeConfig[insight.type];

@@ -4,12 +4,15 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function SignupPage() {
   const router = useRouter();
+  const tc = useTranslations("common");
+  const ta = useTranslations("auth");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,12 +25,12 @@ export default function SignupPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(ta("passwordsDoNotMatch"));
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(ta("passwordTooShort"));
       return;
     }
 
@@ -42,7 +45,7 @@ export default function SignupPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || "Something went wrong");
+      setError(data.error || tc("error"));
       setLoading(false);
       return;
     }
@@ -54,7 +57,7 @@ export default function SignupPage() {
     });
 
     if (result?.error) {
-      setError("Account created but sign-in failed. Please try logging in.");
+      setError(ta("signInFailed"));
       setLoading(false);
     } else {
       router.push("/chat");
@@ -71,42 +74,42 @@ export default function SignupPage() {
           </div>
           <span className="text-xl font-bold text-foreground">This Story</span>
         </div>
-        <CardTitle>Create your account</CardTitle>
+        <CardTitle>{ta("createAccountTitle")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Start your daily reflection journey
+          {ta("createAccountDescription")}
         </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Name"
+            label={ta("name")}
             type="text"
-            placeholder="Your name"
+            placeholder={ta("namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
           <Input
-            label="Email"
+            label={tc("email")}
             type="email"
-            placeholder="you@example.com"
+            placeholder={ta("emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <Input
-            label="Password"
+            label={tc("password")}
             type="password"
-            placeholder="At least 8 characters"
+            placeholder={ta("passwordMinLength")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
           />
           <Input
-            label="Confirm password"
+            label={ta("confirmPassword")}
             type="password"
-            placeholder="Confirm your password"
+            placeholder={ta("confirmPasswordPlaceholder")}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -115,16 +118,16 @@ export default function SignupPage() {
             <p className="text-sm text-destructive">{error}</p>
           )}
           <Button type="submit" className="w-full" loading={loading}>
-            Create account
+            {ta("createAccount")}
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {ta("hasAccount")} {" "}
           <Link
             href="/login"
             className="font-medium text-primary hover:underline"
           >
-            Sign in
+            {tc("signIn")}
           </Link>
         </p>
       </CardContent>

@@ -3,9 +3,9 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MessageList } from "@/components/chat/message-list";
 import { ChatInput } from "@/components/chat/chat-input";
-import { getGreeting } from "@/lib/utils";
 
 function getTextFromMessage(message: UIMessage): string {
   return message.parts
@@ -14,9 +14,18 @@ function getTextFromMessage(message: UIMessage): string {
     .join("");
 }
 
+function getGreetingKey(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
+
 export default function ChatPage() {
   const conversationIdRef = useRef<string | null>(null);
-  const [greeting] = useState(getGreeting());
+  const t = useTranslations("chat");
+  const tg = useTranslations("greeting");
+  const [greetingKey] = useState(getGreetingKey());
   const initializedRef = useRef(false);
 
   const [transport] = useState(
@@ -48,7 +57,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
-      sendMessage({ text: `${greeting}! I'm ready for my daily reflection.` });
+      sendMessage({ text: `${tg(greetingKey)}! ${t("initialMessage")}` });
     }
   }, []);
 
@@ -66,7 +75,7 @@ export default function ChatPage() {
     <div className="flex h-full flex-col">
       <header className="flex h-14 items-center border-b border-border px-6">
         <h1 className="text-lg font-semibold text-foreground">
-          Daily Reflection
+          {t("title")}
         </h1>
         <button
           onClick={() => {
@@ -75,13 +84,13 @@ export default function ChatPage() {
           }}
           className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          New conversation
+          {t("newConversation")}
         </button>
       </header>
 
       {error && (
         <div className="mx-4 mt-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error.message || "Something went wrong. Please try again."}
+          {error.message || t("errorMessage")}
         </div>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
@@ -9,6 +10,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
+  const t = useTranslations("chat");
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -47,7 +49,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
-          placeholder="Share your thoughts..."
+          placeholder={t("placeholder")}
           disabled={disabled}
           rows={1}
           className={cn(

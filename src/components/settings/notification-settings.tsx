@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 interface NotificationSettingsProps {
   preferences: {
@@ -11,6 +12,7 @@ interface NotificationSettingsProps {
 }
 
 export function NotificationSettings({ preferences }: NotificationSettingsProps) {
+  const t = useTranslations("settings");
   const [enabled, setEnabled] = useState(preferences.notificationEnabled);
   const [time, setTime] = useState(preferences.notificationTime);
   const [timezone, setTimezone] = useState(preferences.timezone);
@@ -137,18 +139,18 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
   return (
     <div className="rounded-2xl border border-border bg-card p-6">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-foreground">Daily Reminder</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t("dailyReminder")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Get notified when it&apos;s time for your daily reflection
+          {t("dailyReminderDescription")}
         </p>
       </div>
 
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-foreground">Enable notifications</p>
+            <p className="text-sm font-medium text-foreground">{t("enableNotifications")}</p>
             <p className="text-xs text-muted-foreground">
-              Receive a daily push notification reminder
+              {t("enableNotificationsDescription")}
             </p>
           </div>
           <button
@@ -173,13 +175,13 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
 
         {!supported && (
           <div className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-            Push notifications are not supported in this browser.
+            {t("notSupported")}
           </div>
         )}
 
         {permissionState === "denied" && (
           <div className="rounded-xl bg-destructive/10 border border-destructive/30 px-4 py-3 text-sm text-destructive">
-            Notifications are blocked. Please enable them in your browser settings and try again.
+            {t("blocked")}
           </div>
         )}
 
@@ -190,7 +192,7 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
                 htmlFor="notification-time"
                 className="block text-sm font-medium text-foreground mb-1.5"
               >
-                Reminder time
+                {t("reminderTime")}
               </label>
               <input
                 id="notification-time"
@@ -203,7 +205,7 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
                 className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Timezone: {timezone}
+                {t("timezone", { tz: timezone })}
               </p>
             </div>
 
@@ -214,7 +216,7 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
                 onClick={handleSaveTime}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Save time"}
+                {saving ? t("saving") : t("saveTime")}
               </button>
             )}
           </div>
@@ -222,13 +224,13 @@ export function NotificationSettings({ preferences }: NotificationSettingsProps)
 
         {status === "saved" && (
           <div className="rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary">
-            Settings saved
+            {t("saved")}
           </div>
         )}
 
         {status === "error" && (
           <div className="rounded-xl bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
-            Failed to save settings
+            {t("saveFailed")}
           </div>
         )}
       </div>

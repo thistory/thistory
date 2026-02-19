@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format, subDays, startOfDay } from "date-fns";
@@ -9,6 +10,7 @@ interface HabitTrackerProps {
 }
 
 export function HabitTracker({ activeDates }: HabitTrackerProps) {
+  const t = useTranslations("dashboard");
   const today = startOfDay(new Date());
   const activeDateSet = new Set(
     activeDates.map((d) => format(new Date(d), "yyyy-MM-dd"))
@@ -32,9 +34,9 @@ export function HabitTracker({ activeDates }: HabitTrackerProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Habit Tracker</CardTitle>
+          <CardTitle>{t("habitTitle")}</CardTitle>
           <span className="text-sm text-muted-foreground">
-            {activeCount}/30 days
+            {t("habitDays", { active: activeCount })}
           </span>
         </div>
       </CardHeader>

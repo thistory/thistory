@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -16,6 +17,7 @@ interface ActivityChartProps {
 }
 
 export function ActivityChart({ conversationDates }: ActivityChartProps) {
+  const t = useTranslations("dashboard");
   const today = startOfDay(new Date());
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = subDays(today, 29 - i);
@@ -39,7 +41,7 @@ export function ActivityChart({ conversationDates }: ActivityChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Activity (30 days)</CardTitle>
+        <CardTitle>{t("activityTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-48">

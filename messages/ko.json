@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "title": "This Story",
+    "description": "AI와 함께하는 하루 5분 자기 성찰. 성장을 기록하고, 나만의 패턴을 발견하세요."
+  },
+  "common": {
+    "appName": "This Story",
+    "signIn": "로그인",
+    "signUp": "회원가입",
+    "signOut": "로그아웃",
+    "user": "사용자",
+    "email": "이메일",
+    "password": "비밀번호",
+    "loading": "로딩 중...",
+    "error": "문제가 발생했습니다",
+    "today": "오늘",
+    "yesterday": "어제"
+  },
+  "greeting": {
+    "morning": "좋은 아침이에요",
+    "afternoon": "좋은 오후예요",
+    "evening": "좋은 저녁이에요"
+  },
+  "landing": {
+    "heroTitle1": "매일 5분,",
+    "heroTitle2": "나를 돌아보는 시간",
+    "heroDescription": "AI와 짧은 대화를 나누며 목표를 정리하고, 패턴을 발견하고, 노력을 성장으로 바꾸세요.",
+    "getStarted": "시작하기",
+    "startYourStory": "나의 이야기 시작하기",
+    "feature1Title": "매일 성찰하기",
+    "feature1Description": "하루를 정리하는 5분간의 대화를 나눠보세요.",
+    "feature2Title": "성장 기록하기",
+    "feature2Description": "목표, 습관, 연속 기록을 한눈에 확인하세요.",
+    "feature3Title": "패턴 발견하기",
+    "feature3Description": "AI가 대화에서 목표, 고민, 실천 항목을 추출합니다.",
+    "footer": "This Story — AI와 함께하는 매일의 성찰"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "페이지를 찾을 수 없습니다",
+    "goHome": "홈으로 돌아가기"
+  },
+  "auth": {
+    "welcomeBack": "다시 오신 걸 환영해요",
+    "signInDescription": "매일의 성찰을 이어가세요",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "비밀번호를 입력하세요",
+    "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다",
+    "noAccount": "계정이 없으신가요?",
+    "createAccount": "계정 만들기",
+    "createAccountTitle": "계정 만들기",
+    "createAccountDescription": "매일의 성찰 여정을 시작하세요",
+    "name": "이름",
+    "namePlaceholder": "이름을 입력하세요",
+    "passwordMinLength": "8자 이상",
+    "confirmPassword": "비밀번호 확인",
+    "confirmPasswordPlaceholder": "비밀번호를 다시 입력하세요",
+    "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다",
+    "passwordTooShort": "비밀번호는 8자 이상이어야 합니다",
+    "signInFailed": "계정이 생성되었지만 로그인에 실패했습니다. 다시 로그인해 주세요.",
+    "hasAccount": "이미 계정이 있으신가요?"
+  },
+  "chat": {
+    "title": "오늘의 성찰",
+    "newConversation": "새 대화",
+    "errorMessage": "문제가 발생했습니다. 다시 시도해 주세요.",
+    "initialMessage": "오늘의 성찰을 시작할게요.",
+    "placeholder": "생각을 나눠주세요..."
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "dayStreak": "{count, plural, one {일 연속} other {일 연속}}",
+    "longestStreak": "최장 연속: {count}일",
+    "checkInToday": "오늘도 기록해 보세요!",
+    "activityTitle": "활동 (30일)",
+    "conversations": "대화",
+    "goalsTitle": "나의 목표",
+    "goalsEmpty": "대화에서 목표에 대해 이야기하면 여기에 표시됩니다.",
+    "habitTitle": "습관 트래커",
+    "habitDays": "{active}/30일",
+    "insightsTitle": "인사이트 분석",
+    "insightsRecent": "최근",
+    "typeGoals": "목표",
+    "typeConcerns": "고민",
+    "typeActions": "실천",
+    "typeHabits": "습관"
+  },
+  "settings": {
+    "title": "설정",
+    "dailyReminder": "매일 알림",
+    "dailyReminderDescription": "성찰 시간이 되면 알림을 받으세요",
+    "enableNotifications": "알림 켜기",
+    "enableNotificationsDescription": "매일 푸시 알림으로 리마인더를 받습니다",
+    "notSupported": "이 브라우저에서는 푸시 알림이 지원되지 않습니다.",
+    "blocked": "알림이 차단되어 있습니다. 브라우저 설정에서 알림을 허용한 후 다시 시도해 주세요.",
+    "reminderTime": "알림 시간",
+    "timezone": "시간대: {tz}",
+    "saving": "저장 중...",
+    "saveTime": "시간 저장",
+    "saved": "설정이 저장되었습니다",
+    "saveFailed": "설정 저장에 실패했습니다",
+    "language": "언어",
+    "languageDescription": "사용할 언어를 선택하세요",
+    "ko": "한국어",
+    "en": "English"
+  },
+  "sidebar": {
+    "chat": "대화",
+    "dashboard": "대시보드",
+    "settings": "설정"
+  }
+}
