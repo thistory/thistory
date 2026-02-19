@@ -14,23 +14,8 @@ import { z } from "zod";
 export const maxDuration = 30;
 
 const chatSchema = z.object({
-  messages: z
-    .array(
-      z.object({
-        role: z.enum(["user", "assistant", "system"] as const),
-        content: z.string().optional(),
-        parts: z
-          .array(
-            z.object({
-              type: z.string(),
-              text: z.string().optional(),
-            })
-          )
-          .optional(),
-      })
-    )
-    .min(1),
-  conversationId: z.string().optional(),
+  messages: z.array(z.record(z.string(), z.unknown())).min(1),
+  conversationId: z.string().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -64,7 +49,7 @@ export async function POST(request: Request) {
   }
   const { messages, conversationId } = parsed.data;
 
-  let convId = conversationId;
+  let convId = conversationId ?? undefined;
 
   if (!convId) {
     const conversation = await prisma.conversation.create({
@@ -76,23 +61,24 @@ export async function POST(request: Request) {
     convId = conversation.id;
   }
 
-  const userMessage = messages[messages.length - 1];
-  if (userMessage?.role === "user") {
-    // AI SDK v6: messages use parts array, not content string
+  const lastMessage = messages[messages.length - 1];
+  if (lastMessage && lastMessage.role === "user") {
+    const content = typeof lastMessage.content === "string" ? lastMessage.content : "";
+    const parts = Array.isArray(lastMessage.parts) ? lastMessage.parts : [];
     const textContent =
-      userMessage.content ??
-      (userMessage.parts
-        ?.filter(
-          (p): p is { type: "text"; text: string } =>
+      content ||
+      parts
+        .filter(
+          (p: Record<string, unknown>) =>
             p.type === "text" && typeof p.text === "string"
         )
-        .map((p) => p.text)
+        .map((p: Record<string, unknown>) => p.text as string)
         .join("") ||
-        "");
+      "";
 
     await prisma.message.create({
       data: {
-        conversationId: convId,
+        conversationId: convId!,
         role: "USER",
         content: textContent,
       },
@@ -115,11 +101,20 @@ export async function POST(request: Request) {
   // but AI SDK needs its own UIMessage types which are broader than our schema
   const modelMessages = await convertToModelMessages(body.messages);
 
-  const result = streamText({
-    model: getModel(aiConfig),
-    system: systemPrompt,
-    messages: modelMessages,
-    async onFinish({ text }) {
+  if (aiConfig.provider === "openai" && !process.env.OPENAI_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "OPENAI_API_KEY is not configured" }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  let result;
+  try {
+    result = streamText({
+      model: getModel(aiConfig),
+      system: systemPrompt,
+      messages: modelMessages,
+      async onFinish({ text }) {
       await prisma.message.create({
         data: {
           conversationId: convId,
@@ -193,6 +188,15 @@ export async function POST(request: Request) {
       }
     },
   });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "AI provider error";
+    console.error("streamText failed:", message);
+    return new Response(JSON.stringify({ error: message }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   return result.toUIMessageStreamResponse({
     headers: {

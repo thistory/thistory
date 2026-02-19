@@ -125,7 +125,14 @@ export default function ChatPage() {
 
       {error && (
         <div className="mx-4 mt-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error.message || t("errorMessage")}
+          {(() => {
+            try {
+              const parsed = JSON.parse(error.message);
+              return parsed.error || t("errorMessage");
+            } catch {
+              return error.message || t("errorMessage");
+            }
+          })()}
         </div>
       )}
 
