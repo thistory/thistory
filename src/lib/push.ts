@@ -1,11 +1,19 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
-webpush.setVapidDetails(
-  "mailto:noreply@thistory.app",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+let vapidConfigured = false;
+
+function ensureVapidConfigured() {
+  if (vapidConfigured) return;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey) {
+    throw new Error("VAPID keys not configured. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY.");
+  }
+  webpush.setVapidDetails("mailto:noreply@thistory.app", publicKey, privateKey);
+  vapidConfigured = true;
+}
 
 interface PushPayload {
   title: string;
@@ -17,6 +25,7 @@ export async function sendPushNotification(
   subscription: { endpoint: string; p256dh: string; auth: string },
   payload: PushPayload
 ): Promise<void> {
+  ensureVapidConfigured();
   try {
     await webpush.sendNotification(
       {
@@ -32,6 +41,7 @@ export async function sendPushNotification(
   } catch (error: unknown) {
     const statusCode = (error as { statusCode?: number }).statusCode;
     if (statusCode === 410 || statusCode === 404) {
+      logger.info("Removing expired push subscription", { endpoint: subscription.endpoint });
       await prisma.pushSubscription.delete({
         where: { endpoint: subscription.endpoint },
       }).catch(() => {});

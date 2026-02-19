@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendPushToUser } from "@/lib/push";
+import { logger } from "@/lib/logger";
 
 function getCurrentLocalTime(timezone: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -33,6 +34,8 @@ export async function GET(request: NextRequest) {
   let sent = 0;
   let failed = 0;
 
+  logger.debug("Checking notifications", { userCount: users.length });
+
   for (const user of users) {
     try {
       const localTime = getCurrentLocalTime(user.timezone);
@@ -47,10 +50,13 @@ export async function GET(request: NextRequest) {
 
       sent += result.sent;
       failed += result.failed;
-    } catch {
+      logger.info("Push sent", { userId: user.id, sent: result.sent });
+    } catch (error) {
       failed++;
+      logger.error("Push failed", { userId: user.id, error });
     }
   }
 
+  logger.info("Cron complete", { sent, failed, checked: users.length });
   return NextResponse.json({ sent, failed, checked: users.length });
 }

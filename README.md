@@ -79,12 +79,58 @@ public/
   sw.js              Service worker for push notifications
 ```
 
+## Environments
+
+### File Loading Order (Next.js)
+
+| Priority | File               | Loaded When       | Git Tracked |
+|----------|--------------------|-------------------|-------------|
+| 1        | `.env.local`       | Always            | No          |
+| 2        | `.env.development` | `next dev`        | Yes         |
+| 2        | `.env.production`  | `next build/start`| Yes         |
+| 3        | `.env`             | Always            | No          |
+
+### Development
+
+```bash
+npm run dev          # Uses .env.development automatically
+npm run db:up        # Start local PostgreSQL (docker-compose.yml)
+```
+
+- `LOG_LEVEL=debug` — verbose logging
+- Local PostgreSQL with simple credentials
+- Dev VAPID keys pre-configured
+
+### Production
+
+```bash
+npm run build && npm run start   # Uses .env.production automatically
+npm run db:up:prod               # Start prod PostgreSQL (docker-compose.prod.yml)
+```
+
+- `LOG_LEVEL=warn` — minimal logging
+- Requires managed PostgreSQL (Supabase, Neon, etc.) or `docker-compose.prod.yml`
+- Security headers enabled (X-Frame-Options, CSP, etc.)
+- Image optimization enabled
+- `X-Powered-By` header removed
+
+### Local Overrides
+
+Create `.env.local` (gitignored) to override any value without modifying tracked files:
+```bash
+OPENAI_API_KEY="sk-your-real-key"
+```
+
 ## NPM Scripts
 
 ```bash
 npm run dev                 # Start dev server
 npm run build               # Production build
-npm run db:up               # Start PostgreSQL
+npm run start               # Start production server
+npm run db:up               # Start dev PostgreSQL
+npm run db:up:prod          # Start prod PostgreSQL
+npm run db:down             # Stop dev PostgreSQL
+npm run db:down:prod        # Stop prod PostgreSQL
 npm run db:migrate          # Run migrations
 npm run db:seed             # Seed database
 npm run db:studio           # Open Prisma Studio

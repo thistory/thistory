@@ -1,3 +1,5 @@
+# Development Docker Compose
+# Usage: docker compose up -d
 services:
   postgres:
     image: postgres:18.1-alpine3.22
