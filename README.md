@@ -47,6 +47,7 @@ After seeding, you can log in with:
 - **Auth**: NextAuth.js v5 (JWT + Credentials)
 - **Database**: PostgreSQL + Prisma ORM
 - **AI**: Vercel AI SDK + OpenAI (gpt-4o-mini)
+- **Push Notifications**: Web Push API + web-push
 - **Styling**: Tailwind CSS v4
 - **Charts**: Recharts
 
@@ -56,33 +57,67 @@ After seeding, you can log in with:
 src/
   app/
     (auth)/          Login, signup pages
-    (main)/          Authenticated pages (chat, dashboard)
-    api/             API routes (auth, chat, conversations, insights, streaks)
+    (main)/          Authenticated pages (chat, dashboard, settings)
+    api/             API routes (auth, chat, push, notifications, cron)
   components/
     ui/              Reusable components (Button, Input, Card, Badge, etc.)
     chat/            Chat-specific components
     dashboard/       Dashboard-specific components
+    settings/        Notification settings component
   lib/
     auth.ts          NextAuth configuration
     prisma.ts        Database client
+    push.ts          Server-side push notification service
+    push-client.ts   Client-side push subscription management
     streak.ts        Streak calculation
     ai/              AI prompts and extraction logic
   types/             TypeScript type definitions
 prisma/
   schema.prisma      Database schema
   seed.ts            Seed data
+public/
+  sw.js              Service worker for push notifications
 ```
 
 ## NPM Scripts
 
 ```bash
-npm run dev          # Start dev server
-npm run build        # Production build
-npm run db:up        # Start PostgreSQL
-npm run db:migrate   # Run migrations
-npm run db:seed      # Seed database
-npm run db:studio    # Open Prisma Studio
+npm run dev                 # Start dev server
+npm run build               # Production build
+npm run db:up               # Start PostgreSQL
+npm run db:migrate          # Run migrations
+npm run db:seed             # Seed database
+npm run db:studio           # Open Prisma Studio
+npm run generate-vapid-keys # Generate VAPID keys for push notifications
 ```
+
+## Push Notifications Setup
+
+1. Generate VAPID keys:
+   ```bash
+   npm run generate-vapid-keys
+   ```
+
+2. Add the keys to your `.env`:
+   ```
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY="your-public-key"
+   VAPID_PRIVATE_KEY="your-private-key"
+   CRON_SECRET="your-cron-secret"
+   ```
+
+3. Enable notifications in the Settings page after logging in.
+
+### Testing Notifications Locally
+
+Trigger the cron endpoint manually:
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/notifications
+```
+
+### Production (Vercel)
+
+The `vercel.json` configures a cron job to run every minute (`* * * * *`).
+This requires a Vercel Pro plan. For Hobby plans, change the schedule to a daily time (e.g., `0 * * * *` for hourly).
 
 ## Features (MVP)
 
@@ -91,3 +126,4 @@ npm run db:studio    # Open Prisma Studio
 - Automatic insight extraction (goals, concerns, actions, habits)
 - Dashboard with streak tracking, activity chart, habit tracker
 - Conversation history viewer
+- **Web Push notifications** with per-user scheduling and timezone support
