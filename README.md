@@ -46,7 +46,7 @@ After seeding, you can log in with:
 - **Framework**: Next.js 16 (App Router)
 - **Auth**: NextAuth.js v5 (JWT + Credentials)
 - **Database**: PostgreSQL + Prisma ORM
-- **AI**: Vercel AI SDK + OpenAI (gpt-4o-mini)
+- **AI**: AI SDK + OpenAI (gpt-4o-mini)
 - **Push Notifications**: Web Push API + web-push
 - **Styling**: Tailwind CSS v4
 - **Charts**: Recharts
@@ -159,11 +159,6 @@ Trigger the cron endpoint manually:
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/notifications
 ```
-
-### Production (Vercel)
-
-The `vercel.json` configures a cron job to run every minute (`* * * * *`).
-This requires a Vercel Pro plan. For Hobby plans, change the schedule to a daily time (e.g., `0 * * * *` for hourly).
 
 ## Features (MVP)
 
