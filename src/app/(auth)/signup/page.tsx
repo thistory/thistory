@@ -34,6 +34,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      setError(ta("passwordComplexity"));
+      return;
+    }
+
     setLoading(true);
 
     const res = await fetch("/api/auth/signup", {

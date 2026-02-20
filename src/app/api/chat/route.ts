@@ -1,7 +1,7 @@
 import { streamText, convertToModelMessages } from "ai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getSystemPrompt } from "@/lib/ai/prompts";
+import { getSystemPrompt, buildInsightsContext } from "@/lib/ai/prompts";
 import { getModelForTask, type AIConfig } from "@/lib/ai/provider";
 import {
   extractInsights,
@@ -118,11 +118,17 @@ export async function POST(request: Request) {
 
   const systemPrompt = getSystemPrompt({
     userName: user.name || undefined,
-    previousInsights: recentInsights.map((i) => i.content),
     locale,
   });
 
   const modelMessages = await convertToModelMessages(body.messages);
+
+  // Inject insights as a separate context message to isolate from system prompt
+  const insightsContext = buildInsightsContext(recentInsights.map((i) => i.content));
+  if (insightsContext && modelMessages.length > 0) {
+    modelMessages.unshift({ role: "user", content: insightsContext });
+    modelMessages.unshift({ role: "assistant", content: "Understood, I'll keep these themes in mind." });
+  }
 
   let result;
   try {
