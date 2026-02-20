@@ -12,10 +12,15 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const type = searchParams.get("type");
 
+  const VALID_INSIGHT_TYPES = ["GOAL", "CONCERN", "ACTION", "HABIT"];
   const where: Record<string, unknown> = { userId: session.user.id };
 
   if (type) {
-    where.type = type.toUpperCase();
+    const normalized = type.toUpperCase();
+    if (!VALID_INSIGHT_TYPES.includes(normalized)) {
+      return NextResponse.json({ error: "Invalid insight type" }, { status: 400 });
+    }
+    where.type = normalized;
   }
 
   const insights = await prisma.insight.findMany({
