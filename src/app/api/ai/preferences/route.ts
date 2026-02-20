@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isAllowedOllamaUrl } from "@/lib/ai/provider";
 
 const aiPreferencesSchema = z.object({
   aiProvider: z.enum(["openai", "ollama"]),
@@ -10,7 +11,8 @@ const aiPreferencesSchema = z.object({
     .string()
     .url()
     .max(500)
-    .default("http://localhost:11434"),
+    .default("http://localhost:11434")
+    .refine(isAllowedOllamaUrl, "URL not allowed: internal network addresses are blocked"),
 });
 
 export async function GET() {

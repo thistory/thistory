@@ -9,6 +9,7 @@ import {
 } from "@/lib/ai/extract";
 import { updateStreak } from "@/lib/streak";
 import { logger } from "@/lib/logger";
+import { chatLimiter } from "@/lib/rate-limit";
 import { z } from "zod";
 
 export const maxDuration = 30;
@@ -27,6 +28,20 @@ export async function POST(request: Request) {
   }
 
   const userId = session.user.id;
+
+  const rl = chatLimiter.check(userId);
+  if (!rl.success) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please slow down." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(Math.ceil((rl.retryAfterMs ?? 60000) / 1000)),
+        },
+      }
+    );
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -59,7 +74,15 @@ export async function POST(request: Request) {
 
   let convId = conversationId ?? undefined;
 
-  if (!convId) {
+  if (convId) {
+    const existing = await prisma.conversation.findFirst({
+      where: { id: convId, userId },
+      select: { id: true },
+    });
+    if (!existing) {
+      return new Response("Conversation not found", { status: 404 });
+    }
+  } else {
     const conversation = await prisma.conversation.create({
       data: { userId, title: "Daily story" },
     });
