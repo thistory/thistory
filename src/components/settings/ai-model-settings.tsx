@@ -213,11 +213,11 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
           </>
         )}
 
-        {hasChanges && (
+        {enabled && (
           <div className="flex gap-3">
             <button
               type="button"
-              disabled={saving}
+              disabled={saving || !hasChanges}
               onClick={handleSave}
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
             >
@@ -226,48 +226,35 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
             <button
               type="button"
               disabled={saving}
-              onClick={() => {
-                setEnabled(useOllama);
-                setModel(useOllama ? preferences.aiModel : OLLAMA_MODELS[0]);
-                setOllamaUrl(preferences.ollamaUrl);
-                setCustomModel("");
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  const res = await fetch("/api/ai/preferences", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      aiProvider: "openai",
+                      aiModel: "gpt-4.1-nano",
+                      ollamaUrl: preferences.ollamaUrl,
+                    }),
+                  });
+                  if (!res.ok) throw new Error("Failed");
+                  setEnabled(false);
+                  setModel(OLLAMA_MODELS[0]);
+                  setCustomModel("");
+                  setHasChanges(false);
+                  showStatus("saved");
+                } catch {
+                  showStatus("error");
+                } finally {
+                  setSaving(false);
+                }
               }}
-              className="rounded-xl border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+              className="rounded-xl border border-border bg-background px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
             >
-              {t("aiReset")}
+              {t("aiResetDefault")}
             </button>
           </div>
-        )}
-
-        {useOllama && !hasChanges && (
-          <button
-            type="button"
-            disabled={saving}
-            onClick={async () => {
-              setSaving(true);
-              try {
-                const res = await fetch("/api/ai/preferences", {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    aiProvider: "openai",
-                    aiModel: "gpt-4.1-nano",
-                    ollamaUrl: preferences.ollamaUrl,
-                  }),
-                });
-                if (!res.ok) throw new Error("Failed");
-                setEnabled(false);
-                showStatus("saved");
-              } catch {
-                showStatus("error");
-              } finally {
-                setSaving(false);
-              }
-            }}
-            className="rounded-xl border border-border bg-background px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
-          >
-            {t("aiResetDefault")}
-          </button>
         )}
 
         {status === "saved" && (
