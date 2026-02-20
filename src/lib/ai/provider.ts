@@ -10,8 +10,8 @@ export interface AIConfig {
 export type AITask = "chat" | "extract";
 
 const OPENAI_TASK_MODELS: Record<AITask, string> = {
-  chat: "gpt-4.1-mini",
-  extract: "gpt-4o-mini",
+  chat: "gpt-4.1-nano",
+  extract: "gpt-4.1-nano",
 };
 
 /**
