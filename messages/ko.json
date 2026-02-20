@@ -129,6 +129,8 @@
     "aiCustomModelPlaceholder": "다른 모델명 입력...",
     "aiApply": "적용",
     "aiSave": "AI 설정 저장",
+    "aiReset": "취소",
+    "aiResetDefault": "기본 설정으로 되돌리기",
     "ollamaUrl": "Ollama 서버 URL",
     "ollamaUrlHint": "Ollama가 실행 중인 서버 주소입니다. 기본값: http://localhost:11434",
     "ollamaTestConnection": "연결 테스트",

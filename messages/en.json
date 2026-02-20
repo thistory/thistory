@@ -129,6 +129,8 @@
     "aiCustomModelPlaceholder": "Enter custom model name...",
     "aiApply": "Apply",
     "aiSave": "Save AI settings",
+    "aiReset": "Cancel",
+    "aiResetDefault": "Reset to default",
     "ollamaUrl": "Ollama Server URL",
     "ollamaUrlHint": "The address where Ollama is running. Default: http://localhost:11434",
     "ollamaTestConnection": "Test connection",
