@@ -80,9 +80,7 @@ git push -u origin main
 
 ## 5단계: 크론잡 설정
 
-배포 후 알림 발송을 위해 외부 크론을 설정합니다.
-
-→ **[docs/cron-setup.md](./cron-setup.md)** 참고
+배포 후 분 단위 알림 발송을 위해 외부 크론을 설정합니다 → **[cron-setup.md](./cron-setup.md)**
 
 ## 6단계: 배포 확인
 
