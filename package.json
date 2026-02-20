@@ -15,7 +15,8 @@
     "db:seed": "npx prisma db seed",
     "db:studio": "npx prisma studio",
     "db:setup": "npm run db:up && sleep 3 && npm run db:migrate && npm run db:seed",
-    "generate-vapid-keys": "npx web-push generate-vapid-keys"
+    "generate-vapid-keys": "npx web-push generate-vapid-keys",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
