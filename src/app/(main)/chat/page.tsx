@@ -1,19 +1,13 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
-import { MessageList } from "@/components/chat/message-list";
-import { ChatInput } from "@/components/chat/chat-input";
-import { useVoiceOutput } from "@/hooks/use-voice-output";
+import { ChatContent } from "@/components/chat/chat-content";
 
-function getTextFromMessage(message: UIMessage): string {
-  return message.parts
-    .filter((p): p is Extract<typeof p, { type: "text" }> => p.type === "text")
-    .map((p) => p.text)
-    .join("");
+interface ConversationData {
+  id: string;
+  title: string | null;
+  messages: Array<{ id: string; role: string; content: string }>;
 }
 
 function getGreetingKey(): string {
@@ -24,127 +18,60 @@ function getGreetingKey(): string {
 }
 
 export default function ChatPage() {
-  const router = useRouter();
-  const conversationIdRef = useRef<string | null>(null);
   const t = useTranslations("chat");
   const tg = useTranslations("greeting");
   const locale = useLocale();
   const [greetingKey] = useState(getGreetingKey());
-  const initializedRef = useRef(false);
-  const lastSpokenIdRef = useRef<string | null>(null);
-
-  const {
-    speak,
-    stop: stopSpeaking,
-    enabled: ttsEnabled,
-    setEnabled: setTtsEnabled,
-    isSupported: ttsSupported,
-  } = useVoiceOutput({ locale });
-
-  const [transport] = useState(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/chat",
-        body: () => ({
-          conversationId: conversationIdRef.current,
-          locale,
-        }),
-      })
-  );
-
-  const { messages, sendMessage, status, error } = useChat({
-    transport,
-    onFinish: () => {
-      fetch("/api/conversations?limit=1")
-        .then((r) => r.json())
-        .then((data) => {
-          if (data?.[0]?.id) {
-            conversationIdRef.current = data[0].id;
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to fetch conversation ID:", err);
-        });
-    },
-  });
-
-  const isStreaming = status === "streaming" || status === "submitted";
+  const [loading, setLoading] = useState(true);
+  const [existingConversation, setExistingConversation] =
+    useState<ConversationData | null>(null);
+  const [chatKey, setChatKey] = useState(0);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      sendMessage({ text: `${tg(greetingKey)}! ${t("initialMessage")}` });
-    }
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    fetch("/api/conversations/latest")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: ConversationData | null) => {
+        if (data?.id && data.messages.length > 0) {
+          setExistingConversation(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  // Auto-speak assistant messages when streaming completes
-  useEffect(() => {
-    if (!ttsEnabled || !ttsSupported) return;
-    const lastMsg = messages[messages.length - 1];
-    if (
-      lastMsg &&
-      lastMsg.role === "assistant" &&
-      lastMsg.id !== lastSpokenIdRef.current &&
-      status !== "streaming" &&
-      status !== "submitted"
-    ) {
-      const text = getTextFromMessage(lastMsg);
-      if (text) {
-        speak(text);
-        lastSpokenIdRef.current = lastMsg.id;
-      }
-    }
-  }, [messages, status, ttsEnabled, ttsSupported, speak]);
+  const handleNewConversation = useCallback(() => {
+    setExistingConversation(null);
+    setChatKey((k) => k + 1);
+  }, []);
 
-  function handleSend(content: string) {
-    stopSpeaking();
-    sendMessage({ text: content });
+  const greeting = `${tg(greetingKey)}! ${t("initialMessage")}`;
+
+  if (loading) {
+    return (
+      <div className="flex h-full flex-col">
+        <header className="flex h-14 items-center border-b border-border px-6">
+          <h1 className="text-lg font-semibold text-foreground">
+            {t("title")}
+          </h1>
+        </header>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      </div>
+    );
   }
 
-  const displayMessages = messages.map((m) => ({
-    id: m.id,
-    role: m.role as "user" | "assistant",
-    content: getTextFromMessage(m),
-  }));
-
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex h-14 items-center border-b border-border px-6">
-        <h1 className="text-lg font-semibold text-foreground">
-          {t("title")}
-        </h1>
-        <button
-          onClick={() => {
-            conversationIdRef.current = null;
-            router.refresh();
-          }}
-          className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {t("newConversation")}
-        </button>
-      </header>
-
-      {error && (
-        <div className="mx-4 mt-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {(() => {
-            try {
-              const parsed = JSON.parse(error.message);
-              return parsed.error || t("errorMessage");
-            } catch {
-              return error.message || t("errorMessage");
-            }
-          })()}
-        </div>
-      )}
-
-      <MessageList messages={displayMessages} isStreaming={isStreaming} />
-      <ChatInput
-        onSend={handleSend}
-        disabled={isStreaming}
-        locale={locale}
-        ttsEnabled={ttsEnabled}
-        onTtsToggle={setTtsEnabled}
-      />
-    </div>
+    <ChatContent
+      key={chatKey}
+      locale={locale}
+      greeting={greeting}
+      existingConversation={existingConversation}
+      onNewConversation={handleNewConversation}
+    />
   );
 }
