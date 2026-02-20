@@ -16,7 +16,7 @@ model User {
   timezone            String   @default("UTC")
   locale              String   @default("ko")
   aiProvider          String   @default("openai") @map("ai_provider")
-  aiModel             String   @default("gpt-4.1-mini") @map("ai_model")
+  aiModel             String   @default("gpt-4.1-nano") @map("ai_model")
   ollamaUrl           String   @default("http://localhost:11434") @map("ollama_url")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")

@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 
-const OPENAI_MODELS = ["gpt-4.1-nano", "gpt-4.1-mini", "gpt-4o-mini", "gpt-4o"];
 const OLLAMA_MODELS = ["exaone3.5:7.8b", "qwen3:8b", "llama3.2", "gemma3:12b"];
 
 interface AIPreferences {
@@ -18,13 +17,18 @@ interface AIModelSettingsProps {
 
 export function AIModelSettings({ preferences }: AIModelSettingsProps) {
   const t = useTranslations("settings");
-  const [provider, setProvider] = useState(preferences.aiProvider);
-  const [model, setModel] = useState(preferences.aiModel);
+  const useOllama = preferences.aiProvider === "ollama";
+  const [enabled, setEnabled] = useState(useOllama);
+  const [model, setModel] = useState(
+    useOllama ? preferences.aiModel : OLLAMA_MODELS[0]
+  );
   const [ollamaUrl, setOllamaUrl] = useState(preferences.ollamaUrl);
   const [customModel, setCustomModel] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<null | "saved" | "error">(null);
-  const [testStatus, setTestStatus] = useState<null | "testing" | "ok" | "fail">(null);
+  const [testStatus, setTestStatus] = useState<
+    null | "testing" | "ok" | "fail"
+  >(null);
   const [hasChanges, setHasChanges] = useState(false);
 
   const showStatus = useCallback((s: "saved" | "error") => {
@@ -33,22 +37,11 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
   }, []);
 
   useEffect(() => {
-    const changed =
-      provider !== preferences.aiProvider ||
-      model !== preferences.aiModel ||
-      ollamaUrl !== preferences.ollamaUrl;
-    setHasChanges(changed);
-  }, [provider, model, ollamaUrl, preferences]);
-
-  function handleProviderChange(newProvider: string) {
-    setProvider(newProvider);
-    if (newProvider === "openai") {
-      setModel("gpt-4.1-nano");
-    } else {
-      setModel("exaone3.5:7.8b");
-    }
-    setCustomModel("");
-  }
+    const providerChanged = enabled !== useOllama;
+    const modelChanged = enabled && model !== preferences.aiModel;
+    const urlChanged = enabled && ollamaUrl !== preferences.ollamaUrl;
+    setHasChanges(providerChanged || modelChanged || urlChanged);
+  }, [enabled, model, ollamaUrl, preferences, useOllama]);
 
   function handleModelSelect(selectedModel: string) {
     setModel(selectedModel);
@@ -68,8 +61,8 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          aiProvider: provider,
-          aiModel: model,
+          aiProvider: enabled ? "ollama" : "openai",
+          aiModel: enabled ? model : "gpt-4.1-nano",
           ollamaUrl,
         }),
       });
@@ -99,8 +92,7 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
     setTimeout(() => setTestStatus(null), 3000);
   }
 
-  const models = provider === "openai" ? OPENAI_MODELS : OLLAMA_MODELS;
-  const isCustom = !models.includes(model);
+  const isCustom = enabled && !OLLAMA_MODELS.includes(model);
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6">
@@ -114,127 +106,111 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
       </div>
 
       <div className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {t("aiProvider")}
-          </label>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => handleProviderChange("openai")}
-              className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                provider === "openai"
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border bg-background text-foreground hover:bg-secondary"
-              }`}
-            >
-              OpenAI
-            </button>
-            <button
-              type="button"
-              onClick={() => handleProviderChange("ollama")}
-              className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                provider === "ollama"
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border bg-background text-foreground hover:bg-secondary"
-              }`}
-            >
-              Ollama
-            </button>
-          </div>
-        </div>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+            className="h-4 w-4 rounded border-border text-primary focus:ring-primary/50"
+          />
+          <span className="text-sm font-medium text-foreground">
+            {t("useOllama")}
+          </span>
+        </label>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {t("aiModelName")}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {models.map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => handleModelSelect(m)}
-                className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                  model === m
-                    ? "bg-primary/10 text-primary font-medium ring-1 ring-primary/30"
-                    : "border border-border text-foreground hover:bg-secondary"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-            {isCustom && (
-              <span className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary ring-1 ring-primary/30">
-                {model}
-              </span>
-            )}
-          </div>
-          <div className="mt-3 flex gap-2">
-            <input
-              type="text"
-              value={customModel}
-              onChange={(e) => setCustomModel(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleCustomModelApply();
-                }
-              }}
-              placeholder={t("aiCustomModelPlaceholder")}
-              className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-            <button
-              type="button"
-              onClick={handleCustomModelApply}
-              disabled={!customModel.trim()}
-              className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
-            >
-              {t("aiApply")}
-            </button>
-          </div>
-        </div>
-
-        {provider === "ollama" && (
-          <div>
-            <label
-              htmlFor="ollama-url"
-              className="block text-sm font-medium text-foreground mb-1.5"
-            >
-              {t("ollamaUrl")}
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="ollama-url"
-                type="text"
-                value={ollamaUrl}
-                onChange={(e) => setOllamaUrl(e.target.value)}
-                className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-              <button
-                type="button"
-                onClick={handleTestConnection}
-                disabled={testStatus === "testing"}
-                className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
-              >
-                {testStatus === "testing"
-                  ? t("ollamaTestTesting")
-                  : t("ollamaTestConnection")}
-              </button>
+        {enabled && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {t("aiModelName")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {OLLAMA_MODELS.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => handleModelSelect(m)}
+                    className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                      model === m
+                        ? "bg-primary/10 text-primary font-medium ring-1 ring-primary/30"
+                        : "border border-border text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+                {isCustom && (
+                  <span className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary ring-1 ring-primary/30">
+                    {model}
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="text"
+                  value={customModel}
+                  onChange={(e) => setCustomModel(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCustomModelApply();
+                    }
+                  }}
+                  placeholder={t("aiCustomModelPlaceholder")}
+                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button
+                  type="button"
+                  onClick={handleCustomModelApply}
+                  disabled={!customModel.trim()}
+                  className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                >
+                  {t("aiApply")}
+                </button>
+              </div>
             </div>
-            {testStatus === "ok" && (
-              <p className="mt-2 text-sm font-medium text-primary">
-                {t("ollamaTestOk")}
+
+            <div>
+              <label
+                htmlFor="ollama-url"
+                className="block text-sm font-medium text-foreground mb-1.5"
+              >
+                {t("ollamaUrl")}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="ollama-url"
+                  type="text"
+                  value={ollamaUrl}
+                  onChange={(e) => setOllamaUrl(e.target.value)}
+                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={testStatus === "testing"}
+                  className="rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                >
+                  {testStatus === "testing"
+                    ? t("ollamaTestTesting")
+                    : t("ollamaTestConnection")}
+                </button>
+              </div>
+              {testStatus === "ok" && (
+                <p className="mt-2 text-sm font-medium text-primary">
+                  {t("ollamaTestOk")}
+                </p>
+              )}
+              {testStatus === "fail" && (
+                <p className="mt-2 text-sm font-medium text-destructive">
+                  {t("ollamaTestFail")}
+                </p>
+              )}
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {t("ollamaUrlHint")}
               </p>
-            )}
-            {testStatus === "fail" && (
-              <p className="mt-2 text-sm font-medium text-destructive">
-                {t("ollamaTestFail")}
-              </p>
-            )}
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              {t("ollamaUrlHint")}
-            </p>
-          </div>
+            </div>
+          </>
         )}
 
         {hasChanges && (
