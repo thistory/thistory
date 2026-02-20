@@ -4,13 +4,6 @@
 
 ## Quick Start
 
-### Prerequisites
-
-- Node.js 20+
-- Docker (for PostgreSQL)
-
-### Setup
-
 ```bash
 npm install
 npm run db:up
@@ -36,56 +29,6 @@ brew install ollama
 brew services start ollama
 ollama pull llama3.2
 ```
-Settings에서 Ollama 선택 → 모델 `llama3.2` → 연결 테스트 확인.
-
-> Mac(Apple Silicon)에서는 brew 설치가 Metal GPU 가속을 사용하므로 Docker보다 빠릅니다.
-
-## Tech Stack
-
-- **Framework**: Next.js 16 (App Router, React 19)
-- **Auth**: NextAuth.js v5 (JWT + Credentials)
-- **Database**: PostgreSQL + Prisma 7
-- **AI**: AI SDK v6 + OpenAI / Ollama
-- **Voice**: Web Speech API (STT + TTS)
-- **Push**: Web Push API + web-push
-- **Styling**: Tailwind CSS v4
-- **Charts**: Recharts
-
-## Scripts
-
-```bash
-npm run dev            # Dev server
-npm run build          # Production build
-npm run start          # Production server
-npm run db:up          # Start PostgreSQL
-npm run db:down        # Stop PostgreSQL
-npm run db:up:prod     # Start prod PostgreSQL
-npm run db:down:prod   # Stop prod PostgreSQL
-npm run db:migrate     # Run migrations
-npm run db:seed        # Seed database
-npm run db:studio      # Prisma Studio
-```
-
-## Environments
-
-| Priority | File | Loaded When | Git |
-|----------|------|-------------|-----|
-| 1 | `.env.local` | Always | No |
-| 2 | `.env.development` | `next dev` | Yes |
-| 2 | `.env.production` | `next build/start` | Yes |
-
-`.env.local`(gitignored)로 API 키 등 민감 값 오버라이드.
-
-## Push Notifications
-
-```bash
-npm run generate-vapid-keys
-```
-
-생성된 키를 `.env.local`에 추가 후 Settings에서 알림 활성화. 로컬 테스트:
-```bash
-curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/notifications
-```
 
 ## Features
 
@@ -96,3 +39,22 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/noti
 - Conversation history
 - Web Push notifications (per-user scheduling, timezone)
 - i18n (한국어, English)
+
+## Scripts
+
+```bash
+npm run dev            # Dev server
+npm run build          # Production build
+npm run db:up          # Start PostgreSQL
+npm run db:down        # Stop PostgreSQL
+npm run db:migrate     # Run migrations
+npm run db:seed        # Seed database
+npm run db:studio      # Prisma Studio
+```
+
+## Docs
+
+- [배포 가이드](docs/deployment.md) — Vercel + Neon 배포
+- [크론잡 설정](docs/cron-setup.md) — 외부 크론으로 분 단위 알림
+- [아키텍처](docs/architecture.md) — 시스템 구성, 디렉토리 구조, 데이터 모델
+- [API 레퍼런스](docs/api.md) — 전체 API 엔드포인트

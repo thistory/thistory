@@ -10,12 +10,7 @@ export async function updateStreak(userId: string) {
 
   if (!streak) {
     await prisma.streak.create({
-      data: {
-        userId,
-        currentStreak: 1,
-        longestStreak: 1,
-        lastConversationDate: today,
-      },
+      data: { userId, currentStreak: 1, longestStreak: 1, lastConversationDate: today },
     });
     return;
   }
@@ -23,13 +18,9 @@ export async function updateStreak(userId: string) {
   if (streak.lastConversationDate) {
     const lastDate = new Date(streak.lastConversationDate);
     lastDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / 86_400_000);
 
-    const diffMs = today.getTime() - lastDate.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return;
-    }
+    if (diffDays === 0) return;
 
     if (diffDays === 1) {
       const newCurrent = streak.currentStreak + 1;
@@ -41,23 +32,13 @@ export async function updateStreak(userId: string) {
           lastConversationDate: today,
         },
       });
-    } else {
-      await prisma.streak.update({
-        where: { userId },
-        data: {
-          currentStreak: 1,
-          lastConversationDate: today,
-        },
-      });
+      return;
     }
-  } else {
-    await prisma.streak.update({
-      where: { userId },
-      data: {
-        currentStreak: 1,
-        longestStreak: Math.max(1, streak.longestStreak),
-        lastConversationDate: today,
-      },
-    });
   }
+
+  // Streak broken or no lastConversationDate
+  await prisma.streak.update({
+    where: { userId },
+    data: { currentStreak: 1, lastConversationDate: today },
+  });
 }

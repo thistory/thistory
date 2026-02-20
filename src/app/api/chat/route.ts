@@ -5,10 +5,10 @@ import { getSystemPrompt } from "@/lib/ai/prompts";
 import { getModelForTask, type AIConfig } from "@/lib/ai/provider";
 import {
   extractInsights,
-  generateConversationSummary,
   formatConversationForExtraction,
 } from "@/lib/ai/extract";
 import { updateStreak } from "@/lib/streak";
+import { logger } from "@/lib/logger";
 import { z } from "zod";
 
 export const maxDuration = 30;
@@ -43,6 +43,13 @@ export async function POST(request: Request) {
     ollamaUrl: user.ollamaUrl,
   };
 
+  if (aiConfig.provider === "openai" && !process.env.OPENAI_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "OPENAI_API_KEY is not configured" }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   const body = await request.json();
   const parsed = chatSchema.safeParse(body);
   if (!parsed.success) {
@@ -54,10 +61,7 @@ export async function POST(request: Request) {
 
   if (!convId) {
     const conversation = await prisma.conversation.create({
-      data: {
-        userId,
-        title: "Daily reflection",
-      },
+      data: { userId, title: "Daily story" },
     });
     convId = conversation.id;
   }
@@ -78,11 +82,7 @@ export async function POST(request: Request) {
       "";
 
     await prisma.message.create({
-      data: {
-        conversationId: convId!,
-        role: "USER",
-        content: textContent,
-      },
+      data: { conversationId: convId, role: "USER", content: textContent },
     });
   }
 
@@ -99,16 +99,7 @@ export async function POST(request: Request) {
     locale,
   });
 
-  // Pass original body.messages to convertToModelMessages — Zod validated structure,
-  // but AI SDK needs its own UIMessage types which are broader than our schema
   const modelMessages = await convertToModelMessages(body.messages);
-
-  if (aiConfig.provider === "openai" && !process.env.OPENAI_API_KEY) {
-    return new Response(
-      JSON.stringify({ error: "OPENAI_API_KEY is not configured" }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
-    );
-  }
 
   let result;
   try {
@@ -120,92 +111,76 @@ export async function POST(request: Request) {
       frequencyPenalty: 0.3,
       maxOutputTokens: 300,
       async onFinish({ text }) {
-      await prisma.message.create({
-        data: {
-          conversationId: convId,
-          role: "ASSISTANT",
-          content: text,
-        },
-      });
-
-      try {
-        const allMessages = await prisma.message.findMany({
-          where: { conversationId: convId },
-          orderBy: { createdAt: "asc" },
+        await prisma.message.create({
+          data: { conversationId: convId, role: "ASSISTANT", content: text },
         });
 
-        // Run insight extraction only at conversation end:
-        // - 12+ messages (6 round trips = max conversation length), OR
-        // - 8+ messages AND response contains closing patterns
-        const messageCount = allMessages.length;
-        const isClosingResponse =
-          messageCount >= 8 &&
-          /내일|tomorrow|마무리|focus on|한 가지|one thing|좋은 하루|good night|잘 자|rest well/i.test(text);
-        const shouldExtract = messageCount >= 12 || isClosingResponse;
+        try {
+          const allMessages = await prisma.message.findMany({
+            where: { conversationId: convId },
+            orderBy: { createdAt: "asc" },
+          });
 
-        if (shouldExtract) {
-          const conversationText = formatConversationForExtraction(
-            allMessages.map((m) => ({
-              role: m.role.toLowerCase(),
-              content: m.content,
-            }))
-          );
+          const messageCount = allMessages.length;
+          const isClosingResponse =
+            messageCount >= 8 &&
+            /내일|tomorrow|마무리|focus on|한 가지|one thing|좋은 하루|good night|잘 자|rest well/i.test(text);
 
-          const [extracted, summary] = await Promise.all([
-            extractInsights(conversationText, aiConfig).catch(() => null),
-            generateConversationSummary(conversationText, aiConfig).catch(
-              () => null
-            ),
-          ]);
-
-          if (extracted) {
-            const existingInsights = await prisma.insight.findMany({
-              where: { conversationId: convId },
-              select: { content: true },
-            });
-            const existingContents = new Set(
-              existingInsights.map((i) => i.content)
+          if (messageCount >= 12 || isClosingResponse) {
+            const conversationText = formatConversationForExtraction(
+              allMessages.map((m) => ({
+                role: m.role.toLowerCase(),
+                content: m.content,
+              }))
             );
 
-            const newInsights = extracted.insights.filter(
-              (i) => !existingContents.has(i.content)
-            );
+            const extracted = await extractInsights(conversationText, aiConfig).catch(() => null);
 
-            if (newInsights.length > 0) {
-              await prisma.insight.createMany({
-                data: newInsights.map((insight) => ({
-                  conversationId: convId,
-                  userId,
-                  type: insight.type.toUpperCase() as
-                    | "GOAL"
-                    | "CONCERN"
-                    | "ACTION"
-                    | "HABIT",
-                  content: insight.content,
-                  tags: insight.tags,
-                })),
+            if (extracted) {
+              const existingInsights = await prisma.insight.findMany({
+                where: { conversationId: convId },
+                select: { content: true },
               });
+              const existingContents = new Set(existingInsights.map((i) => i.content));
+              const newInsights = extracted.insights.filter(
+                (i) => !existingContents.has(i.content)
+              );
+
+              if (newInsights.length > 0) {
+                await prisma.insight.createMany({
+                  data: newInsights.map((insight) => ({
+                    conversationId: convId,
+                    userId,
+                    type: insight.type.toUpperCase() as
+                      | "GOAL"
+                      | "CONCERN"
+                      | "ACTION"
+                      | "HABIT",
+                    content: insight.content,
+                    tags: insight.tags,
+                  })),
+                });
+              }
+
+              if (extracted.summary) {
+                await prisma.conversation.update({
+                  where: { id: convId },
+                  data: { summary: extracted.summary, title: extracted.summary },
+                });
+              }
             }
           }
 
-          if (summary) {
-            await prisma.conversation.update({
-              where: { id: convId },
-              data: { summary, title: summary },
-            });
-          }
+          await updateStreak(userId);
+        } catch (error) {
+          logger.error("Post-processing failed (non-blocking)", error);
         }
-
-        await updateStreak(userId);
-      } catch (error) {
-        console.error("Post-processing failed (non-blocking):", error);
-      }
-    },
-  });
+      },
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "AI provider error";
-    console.error("streamText failed:", message);
+    logger.error("streamText failed", message);
     return new Response(JSON.stringify({ error: message }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
@@ -213,8 +188,6 @@ export async function POST(request: Request) {
   }
 
   return result.toUIMessageStreamResponse({
-    headers: {
-      "X-Conversation-Id": convId,
-    },
+    headers: { "X-Conversation-Id": convId },
   });
 }

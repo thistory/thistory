@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "This Story",
-    "description": "5 minutes of daily reflection, powered by AI. Track your growth, discover your patterns."
+    "description": "Create your daily story in 5 minutes with AI. Track your growth, discover your patterns."
   },
   "common": {
     "appName": "This Story",
@@ -23,17 +23,17 @@
   },
   "landing": {
     "heroTitle1": "5 minutes of daily",
-    "heroTitle2": "reflection",
+    "heroTitle2": "storytelling",
     "heroDescription": "A short daily conversation with AI that helps you track your goals, discover patterns, and turn effort into growth.",
     "getStarted": "Get started",
     "startYourStory": "Start your story",
-    "feature1Title": "Reflect daily",
+    "feature1Title": "Create your story",
     "feature1Description": "A guided 5-minute conversation that helps you process your day.",
     "feature2Title": "Track your growth",
     "feature2Description": "See your goals, habits, and streaks visualized over time.",
     "feature3Title": "See your patterns",
     "feature3Description": "AI extracts goals, concerns, and actions from your words.",
-    "footer": "This Story — Your daily reflection, powered by AI"
+    "footer": "This Story — Your daily story, powered by AI"
   },
   "notFound": {
     "title": "404",
@@ -42,14 +42,14 @@
   },
   "auth": {
     "welcomeBack": "Welcome back",
-    "signInDescription": "Sign in to continue your daily reflection",
+    "signInDescription": "Sign in to continue your daily story",
     "emailPlaceholder": "you@example.com",
     "passwordPlaceholder": "Enter your password",
     "invalidCredentials": "Invalid email or password",
     "noAccount": "Don't have an account?",
     "createAccount": "Create account",
     "createAccountTitle": "Create your account",
-    "createAccountDescription": "Start your daily reflection journey",
+    "createAccountDescription": "Start your daily story",
     "name": "Name",
     "namePlaceholder": "Your name",
     "passwordMinLength": "At least 8 characters",
@@ -61,10 +61,10 @@
     "hasAccount": "Already have an account?"
   },
   "chat": {
-    "title": "Daily Reflection",
+    "title": "Today's Story",
     "newConversation": "New conversation",
     "errorMessage": "Something went wrong. Please try again.",
-    "initialMessage": "I'm ready for my daily reflection.",
+    "initialMessage": "Let's create today's story.",
     "placeholder": "Share your thoughts...",
     "switchToText": "Switch to text",
     "switchToVoice": "Switch to voice",
@@ -86,7 +86,7 @@
     "activityTitle": "Activity (30 days)",
     "conversations": "conversations",
     "goalsTitle": "Your Goals",
-    "goalsEmpty": "Goals will appear here as you chat about them in your daily reflections.",
+    "goalsEmpty": "Goals will appear here as you chat about them in your daily stories.",
     "habitTitle": "Habit Tracker",
     "habitDays": "{active}/30 days",
     "insightsTitle": "Insights Breakdown",
@@ -99,7 +99,7 @@
   "settings": {
     "title": "Settings",
     "dailyReminder": "Daily Reminder",
-    "dailyReminderDescription": "Get notified when it's time for your daily reflection",
+    "dailyReminderDescription": "Get notified when it's time for your daily story",
     "enableNotifications": "Enable notifications",
     "enableNotificationsDescription": "Receive a daily push notification reminder",
     "notSupported": "Push notifications are not supported in this browser.",

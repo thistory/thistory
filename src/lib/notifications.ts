@@ -16,18 +16,18 @@ const NOTIFICATION_MESSAGES: Record<string, {
   body: (name?: string | null) => string;
 }> = {
   ko: {
-    title: "오늘의 성찰 시간이에요 ✨",
+    title: "오늘의 스토리 시간이에요 ✨",
     body: (name) =>
       name
-        ? `${name}님, 오늘 하루를 돌아보는 5분 성찰이 기다리고 있어요.`
-        : "오늘 하루를 돌아보는 5분 성찰이 기다리고 있어요.",
+        ? `${name}님, 오늘의 5분 스토리가 기다리고 있어요.`
+        : "오늘의 5분 스토리가 기다리고 있어요.",
   },
   en: {
-    title: "Time to Reflect ✨",
+    title: "Time for Your Story ✨",
     body: (name) =>
       name
-        ? `Hi ${name}! Your daily 5-minute reflection is waiting.`
-        : "Hi there! Your daily 5-minute reflection is waiting.",
+        ? `Hi ${name}! Your daily 5-minute story is waiting.`
+        : "Hi there! Your daily 5-minute story is waiting.",
   },
 };
 

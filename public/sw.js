@@ -22,7 +22,7 @@ self.addEventListener("push", function (event) {
   }
 
   var options = {
-    body: data.body || "Time for your daily reflection",
+    body: data.body || "Time for your daily story",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
     tag: data.tag || "thistory-" + Date.now(),
