@@ -2,7 +2,7 @@ import { streamText, convertToModelMessages } from "ai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSystemPrompt } from "@/lib/ai/prompts";
-import { getModel, type AIConfig } from "@/lib/ai/provider";
+import { getModelForTask, type AIConfig } from "@/lib/ai/provider";
 import {
   extractInsights,
   generateConversationSummary,
@@ -113,9 +113,12 @@ export async function POST(request: Request) {
   let result;
   try {
     result = streamText({
-      model: getModel(aiConfig),
+      model: getModelForTask(aiConfig, "chat"),
       system: systemPrompt,
       messages: modelMessages,
+      temperature: 0.7,
+      frequencyPenalty: 0.3,
+      maxOutputTokens: 300,
       async onFinish({ text }) {
       await prisma.message.create({
         data: {
@@ -131,7 +134,16 @@ export async function POST(request: Request) {
           orderBy: { createdAt: "asc" },
         });
 
-        if (allMessages.length >= 4) {
+        // Run insight extraction only at conversation end:
+        // - 12+ messages (6 round trips = max conversation length), OR
+        // - 8+ messages AND response contains closing patterns
+        const messageCount = allMessages.length;
+        const isClosingResponse =
+          messageCount >= 8 &&
+          /내일|tomorrow|마무리|focus on|한 가지|one thing|좋은 하루|good night|잘 자|rest well/i.test(text);
+        const shouldExtract = messageCount >= 12 || isClosingResponse;
+
+        if (shouldExtract) {
           const conversationText = formatConversationForExtraction(
             allMessages.map((m) => ({
               role: m.role.toLowerCase(),

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 
-const OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1-nano"];
+const OPENAI_MODELS = ["gpt-4.1-mini", "gpt-4.1-nano", "gpt-4o-mini", "gpt-4o"];
 const OLLAMA_MODELS = ["exaone3.5:7.8b", "qwen3:8b", "llama3.2", "gemma3:12b"];
 
 interface AIPreferences {
@@ -43,7 +43,7 @@ export function AIModelSettings({ preferences }: AIModelSettingsProps) {
   function handleProviderChange(newProvider: string) {
     setProvider(newProvider);
     if (newProvider === "openai") {
-      setModel("gpt-4o-mini");
+      setModel("gpt-4.1-mini");
     } else {
       setModel("exaone3.5:7.8b");
     }

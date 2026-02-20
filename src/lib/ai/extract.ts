@@ -1,7 +1,7 @@
 import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { EXTRACTION_PROMPT, SUMMARY_PROMPT } from "./prompts";
-import { getModel, type AIConfig } from "./provider";
+import { getModelForTask, type AIConfig } from "./provider";
 
 const InsightSchema = z.object({
   insights: z.array(
@@ -20,11 +20,13 @@ export async function extractInsights(
   conversationText: string,
   aiConfig?: AIConfig
 ): Promise<ExtractedInsights> {
+  const config = aiConfig ?? { provider: "openai", model: "gpt-4o-mini" };
   const { object } = await generateObject({
-    model: getModel(aiConfig),
+    model: getModelForTask(config, "extract"),
     schema: InsightSchema,
     system: EXTRACTION_PROMPT,
     prompt: conversationText,
+    temperature: 0.1,
   });
 
   return object;
@@ -34,10 +36,12 @@ export async function generateConversationSummary(
   conversationText: string,
   aiConfig?: AIConfig
 ): Promise<string> {
+  const config = aiConfig ?? { provider: "openai", model: "gpt-4.1-nano" };
   const { text } = await generateText({
-    model: getModel(aiConfig),
+    model: getModelForTask(config, "summary"),
     system: SUMMARY_PROMPT,
     prompt: conversationText,
+    temperature: 0.3,
     maxOutputTokens: 50,
   });
 

@@ -10,6 +10,11 @@ export function LanguageSwitcher() {
 
   function handleChange(newLocale: string) {
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    fetch("/api/locale", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: newLocale }),
+    }).catch(() => {});
     router.refresh();
   }
 

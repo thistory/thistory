@@ -11,6 +11,26 @@ function getCurrentLocalTime(timezone: string): string {
   }).format(new Date());
 }
 
+const NOTIFICATION_MESSAGES: Record<string, {
+  title: string;
+  body: (name?: string | null) => string;
+}> = {
+  ko: {
+    title: "오늘의 성찰 시간이에요 ✨",
+    body: (name) =>
+      name
+        ? `${name}님, 오늘 하루를 돌아보는 5분 성찰이 기다리고 있어요.`
+        : "오늘 하루를 돌아보는 5분 성찰이 기다리고 있어요.",
+  },
+  en: {
+    title: "Time to Reflect ✨",
+    body: (name) =>
+      name
+        ? `Hi ${name}! Your daily 5-minute reflection is waiting.`
+        : "Hi there! Your daily 5-minute reflection is waiting.",
+  },
+};
+
 export async function checkAndSendNotifications(): Promise<{
   sent: number;
   failed: number;
@@ -24,6 +44,7 @@ export async function checkAndSendNotifications(): Promise<{
     select: {
       id: true,
       name: true,
+      locale: true,
       notificationTime: true,
       timezone: true,
     },
@@ -39,16 +60,16 @@ export async function checkAndSendNotifications(): Promise<{
       const localTime = getCurrentLocalTime(user.timezone);
       if (localTime !== user.notificationTime) continue;
 
-      const greeting = user.name ? `Hi ${user.name}!` : "Hi there!";
+      const messages = NOTIFICATION_MESSAGES[user.locale] ?? NOTIFICATION_MESSAGES.ko;
       const result = await sendPushToUser(user.id, {
-        title: "Time to Reflect ✨",
-        body: `${greeting} Your daily 5-minute reflection is waiting.`,
+        title: messages.title,
+        body: messages.body(user.name),
         url: "/chat",
       });
 
       sent += result.sent;
       failed += result.failed;
-      logger.info("Push sent", { userId: user.id, sent: result.sent });
+      logger.info("Push sent", { userId: user.id, locale: user.locale, sent: result.sent });
     } catch (error) {
       failed++;
       logger.error("Push failed", { userId: user.id, error });
